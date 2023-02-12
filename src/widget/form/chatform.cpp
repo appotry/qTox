@@ -19,7 +19,7 @@
 
 #include "chatform.h"
 #include "src/chatlog/chatlinecontentproxy.h"
-#include "src/chatlog/chatlog.h"
+#include "src/chatlog/chatwidget.h"
 #include "src/chatlog/chatmessage.h"
 #include "src/chatlog/content/filetransferwidget.h"
 #include "src/chatlog/content/text.h"
@@ -37,6 +37,7 @@
 #include "src/widget/chatformheader.h"
 #include "src/widget/contentdialogmanager.h"
 #include "src/widget/form/loadhistorydialog.h"
+#include "src/widget/imagepreviewwidget.h"
 #include "src/widget/maskablepixmapwidget.h"
 #include "src/widget/searchform.h"
 #include "src/widget/style.h"
@@ -68,10 +69,11 @@
  *
  * @brief stopNotification Tell others to stop notification of a call.
  */
-
-static constexpr int CHAT_WIDGET_MIN_HEIGHT = 50;
-static constexpr int SCREENSHOT_GRABBER_OPENING_DELAY = 500;
-static constexpr int TYPING_NOTIFICATION_DURATION = 3000;
+namespace {
+constexpr int CHAT_WIDGET_MIN_HEIGHT = 50;
+constexpr int SCREENSHOT_GRABBER_OPENING_DELAY = 500;
+constexpr int TYPING_NOTIFICATION_DURATION = 3000;
+} // namespace
 
 const QString ChatForm::ACTION_PREFIX = QStringLiteral("/me ");
 
@@ -104,12 +106,24 @@ QString secondsToDHMS(quint32 duration)
 }
 } // namespace
 
-ChatForm::ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog, IMessageDispatcher& messageDispatcher)
-    : GenericChatForm(profile.getCore(), chatFriend, chatLog, messageDispatcher)
-    , core{profile.getCore()}
+ChatForm::ChatForm(Profile& profile_, Friend* chatFriend, IChatLog& chatLog_,
+    IMessageDispatcher& messageDispatcher_, DocumentCache& documentCache_,
+    SmileyPack& smileyPack_, CameraSource& cameraSource_, Settings& settings_,
+    Style& style_, IMessageBoxManager& messageBoxManager,
+    ContentDialogManager& contentDialogManager_, FriendList& friendList_,
+    GroupList& groupList_)
+    : GenericChatForm(profile_.getCore(), chatFriend, chatLog_, messageDispatcher_,
+        documentCache_, smileyPack_, settings_, style_, messageBoxManager, friendList_,
+        groupList_)
+    , core{profile_.getCore()}
     , f(chatFriend)
     , isTyping{false}
     , lastCallIsVideo{false}
+    , cameraSource{cameraSource_}
+    , settings{settings_}
+    , style{style_}
+    , contentDialogManager{contentDialogManager_}
+    , profile{profile_}
 {
     setName(f->getDisplayedName());
 
@@ -117,8 +131,8 @@ ChatForm::ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog, IMes
 
     statusMessageLabel = new CroppingLabel();
     statusMessageLabel->setObjectName("statusLabel");
-    statusMessageLabel->setFont(Style::getFont(Style::Medium));
-    statusMessageLabel->setMinimumHeight(Style::getFont(Style::Medium).pixelSize());
+    statusMessageLabel->setFont(Style::getFont(Style::Font::Medium));
+    statusMessageLabel->setMinimumHeight(Style::getFont(Style::Font::Medium).pixelSize());
     statusMessageLabel->setTextFormat(Qt::PlainText);
     statusMessageLabel->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -133,6 +147,23 @@ ChatForm::ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog, IMes
     headWidget->addStretch();
     headWidget->addWidget(callDuration, 1, Qt::AlignCenter);
     callDuration->hide();
+
+    imagePreview = new ImagePreviewButton(this);
+    imagePreview->setFixedSize(100, 100);
+    imagePreview->setFlat(true);
+    imagePreview->setStyleSheet("QPushButton { border: 0px }");
+    imagePreview->hide();
+
+    auto cancelIcon = QIcon(style.getImagePath("rejectCall/rejectCall.svg", settings));
+    QPushButton* cancelButton = new QPushButton(imagePreview);
+    cancelButton->setFixedSize(20, 20);
+    cancelButton->move(QPoint(80, 0));
+    cancelButton->setIcon(cancelIcon);
+    cancelButton->setFlat(true);
+
+    connect(cancelButton, &QPushButton::pressed, this, &ChatForm::cancelImagePreview);
+
+    contentLayout->insertWidget(3, imagePreview);
 
     copyStatusAction = statusMessageMenu.addAction(QString(), this, SLOT(onCopyStatusMessage()));
 
@@ -155,14 +186,17 @@ ChatForm::ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog, IMes
     connect(headWidget, &ChatFormHeader::micMuteToggle, this, &ChatForm::onMicMuteToggle);
     connect(headWidget, &ChatFormHeader::volMuteToggle, this, &ChatForm::onVolMuteToggle);
     connect(sendButton, &QPushButton::pressed, this, &ChatForm::callUpdateFriendActivity);
+    connect(sendButton, &QPushButton::pressed, this, &ChatForm::sendImageFromPreview);
     connect(msgEdit, &ChatTextEdit::enterPressed, this, &ChatForm::callUpdateFriendActivity);
     connect(msgEdit, &ChatTextEdit::textChanged, this, &ChatForm::onTextEditChanged);
-    connect(msgEdit, &ChatTextEdit::pasteImage, this, &ChatForm::sendImage);
+    connect(msgEdit, &ChatTextEdit::pasteImage, this, &ChatForm::previewImage);
+    connect(msgEdit, &ChatTextEdit::enterPressed, this, &ChatForm::sendImageFromPreview);
+    connect(msgEdit, &ChatTextEdit::escapePressed, this, &ChatForm::cancelImagePreview);
     connect(statusMessageLabel, &CroppingLabel::customContextMenuRequested, this,
             [&](const QPoint& pos) {
                 if (!statusMessageLabel->text().isEmpty()) {
-                    QWidget* sender = static_cast<QWidget*>(this->sender());
-                    statusMessageMenu.exec(sender->mapToGlobal(pos));
+                    QWidget* sender_ = static_cast<QWidget*>(sender());
+                    statusMessageMenu.exec(sender_->mapToGlobal(pos));
                 }
             });
 
@@ -232,7 +266,7 @@ void ChatForm::onExtensionSupportChanged(ExtensionSet extensions)
 
 void ChatForm::onTextEditChanged()
 {
-    if (!Settings::getInstance().getTypingNotification()) {
+    if (!settings.getTypingNotification()) {
         if (isTyping) {
             isTyping = false;
             core.sendTyping(f->getId(), false);
@@ -254,7 +288,7 @@ void ChatForm::onTextEditChanged()
 void ChatForm::onAttachClicked()
 {
     QStringList paths = QFileDialog::getOpenFileNames(Q_NULLPTR, tr("Send a file"),
-                                                      QDir::homePath(), nullptr, nullptr);
+                                                      QDir::homePath(), QString(), nullptr);
 
     if (paths.isEmpty()) {
         return;
@@ -289,14 +323,15 @@ void ChatForm::onAvInvite(uint32_t friendId, bool video)
     }
 
     QString displayedName = f->getDisplayedName();
-    insertChatMessage(ChatMessage::createChatInfoMessage(tr("%1 calling").arg(displayedName),
-                                                         ChatMessage::INFO,
-                                                         QDateTime::currentDateTime()));
+
+    SystemMessage systemMessage;
+    systemMessage.messageType = SystemMessageType::incomingCall;
+    systemMessage.args = {displayedName};
+    chatLog.addSystemMessage(systemMessage);
 
     auto testedFlag = video ? Settings::AutoAcceptCall::Video : Settings::AutoAcceptCall::Audio;
     // AutoAcceptCall is set for this friend
-    if (Settings::getInstance().getAutoAcceptCall(f->getPublicKey()).testFlag(testedFlag)) {
-        uint32_t friendId = f->getId();
+    if (settings.getAutoAcceptCall(f->getPublicKey()).testFlag(testedFlag)) {
         qDebug() << "automatic call answer";
         CoreAV* coreav = core.getAv();
         QMetaObject::invokeMethod(coreav, "answerCall", Qt::QueuedConnection,
@@ -349,8 +384,8 @@ void ChatForm::onAvEnd(uint32_t friendId, bool error)
 void ChatForm::showOutgoingCall(bool video)
 {
     headWidget->showOutgoingCall(video);
-    addSystemInfoMessage(tr("Calling %1").arg(f->getDisplayedName()), ChatMessage::INFO,
-                         QDateTime::currentDateTime());
+    addSystemInfoMessage(QDateTime::currentDateTime(), SystemMessageType::outgoingCall,
+                         {f->getDisplayedName()});
     emit outgoingNotification();
     emit updateFriendActivity(*f);
 }
@@ -434,6 +469,7 @@ void ChatForm::onFriendStatusChanged(const ToxPk& friendPk, Status::Status statu
 {
     // Disable call buttons if friend is offline
     assert(friendPk == f->getPublicKey());
+    std::ignore = friendPk;
 
     if (!Status::isOnline(f->getStatus())) {
         // Hide the "is typing" message when a friend goes offline
@@ -442,19 +478,17 @@ void ChatForm::onFriendStatusChanged(const ToxPk& friendPk, Status::Status statu
 
     updateCallButtons();
 
-    if (Settings::getInstance().getStatusChangeNotificationEnabled()) {
+    if (settings.getStatusChangeNotificationEnabled()) {
         QString fStatus = Status::getTitle(status);
-        addSystemInfoMessage(tr("%1 is now %2", "e.g. \"Dubslow is now online\"")
-                                 .arg(f->getDisplayedName())
-                                 .arg(fStatus),
-                             ChatMessage::INFO, QDateTime::currentDateTime());
+        addSystemInfoMessage(QDateTime::currentDateTime(), SystemMessageType::peerStateChange,
+                             {f->getDisplayedName(), fStatus});
     }
 }
 
-void ChatForm::onFriendTypingChanged(quint32 friendId, bool isTyping)
+void ChatForm::onFriendTypingChanged(quint32 friendId, bool isTyping_)
 {
     if (friendId == f->getId()) {
-        setFriendTyping(isTyping);
+        setFriendTyping(isTyping_);
     }
 }
 
@@ -485,7 +519,8 @@ std::unique_ptr<NetCamView> ChatForm::createNetcam()
 {
     qDebug() << "creating netcam";
     uint32_t friendId = f->getId();
-    std::unique_ptr<NetCamView> view = std::unique_ptr<NetCamView>(new NetCamView(f->getPublicKey(), this));
+    std::unique_ptr<NetCamView> view = std::unique_ptr<NetCamView>(
+        new NetCamView(f->getPublicKey(), cameraSource, settings, style, profile, this));
     CoreAV* av = core.getAv();
     VideoSource* source = av->getVideoSourceFromCall(friendId);
     view->show(source, f->getDisplayedName());
@@ -561,27 +596,46 @@ void ChatForm::doScreenshot()
 {
     // note: grabber is self-managed and will destroy itself when done
     ScreenshotGrabber* grabber = new ScreenshotGrabber;
-    connect(grabber, &ScreenshotGrabber::screenshotTaken, this, &ChatForm::sendImage);
+    connect(grabber, &ScreenshotGrabber::screenshotTaken, this, &ChatForm::previewImage);
     grabber->showGrabber();
 }
 
-void ChatForm::sendImage(const QPixmap& pixmap)
+void ChatForm::previewImage(const QPixmap& pixmap)
 {
-    QDir(Settings::getInstance().getPaths().getAppDataDirPath()).mkpath("images");
+    imagePreviewSource = pixmap;
+    imagePreview->setIconFromPixmap(pixmap);
+    imagePreview->show();
+}
+
+void ChatForm::cancelImagePreview()
+{
+    imagePreviewSource = QPixmap();
+    imagePreview->hide();
+}
+
+void ChatForm::sendImageFromPreview()
+{
+    if (!imagePreview->isVisible()) {
+        return;
+    }
+
+    QDir(settings.getPaths().getAppDataDirPath()).mkpath("images");
 
     // use ~ISO 8601 for screenshot timestamp, considering FS limitations
     // https://en.wikipedia.org/wiki/ISO_8601
     // Windows has to be supported, thus filename can't have `:` in it :/
     // Format should be: `qTox_Screenshot_yyyy-MM-dd HH-mm-ss.zzz.png`
     QString filepath = QString("%1images%2qTox_Image_%3.png")
-                           .arg(Settings::getInstance().getPaths().getAppDataDirPath())
+                           .arg(settings.getPaths().getAppDataDirPath())
                            .arg(QDir::separator())
                            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
     QFile file(filepath);
 
     if (file.open(QFile::ReadWrite)) {
-        pixmap.save(&file, "PNG");
+        imagePreviewSource.save(&file, "PNG");
         qint64 filesize = file.size();
+        imagePreview->hide();
+        imagePreviewSource = QPixmap();
         file.close();
         QFileInfo fi(file);
         CoreFile* coreFile = core.getCoreFile();
@@ -590,14 +644,6 @@ void ChatForm::sendImage(const QPixmap& pixmap)
         QMessageBox::warning(this,
                              tr("Failed to open temporary file", "Temporary file for screenshot"),
                              tr("qTox wasn't able to save the screenshot"));
-    }
-}
-
-void ChatForm::insertChatMessage(ChatMessage::Ptr msg)
-{
-    GenericChatForm::insertChatMessage(msg);
-    if (netcam && bodySplitter->sizes()[1] == 0) {
-        netcam->setShowMessages(true, true);
     }
 }
 
@@ -652,10 +698,10 @@ void ChatForm::stopCounter(bool error)
     }
     QString dhms = secondsToDHMS(timeElapsed.elapsed() / 1000);
     QString name = f->getDisplayedName();
-    QString mess = error ? tr("Call with %1 ended unexpectedly. %2") : tr("Call with %1 ended. %2");
+    auto messageType = error ? SystemMessageType::unexpectedCallEnd : SystemMessageType::callEnd;
     // TODO: add notification once notifications are implemented
 
-    addSystemInfoMessage(mess.arg(name, dhms), ChatMessage::INFO, QDateTime::currentDateTime());
+    addSystemInfoMessage(QDateTime::currentDateTime(), messageType, {name, dhms});
     callDurationTimer->stop();
     callDuration->setText("");
     callDuration->hide();
@@ -669,16 +715,16 @@ void ChatForm::onUpdateTime()
     callDuration->setText(secondsToDHMS(timeElapsed.elapsed() / 1000));
 }
 
-void ChatForm::setFriendTyping(bool isTyping)
+void ChatForm::setFriendTyping(bool isTyping_)
 {
-    chatWidget->setTypingNotificationVisible(isTyping);
+    chatWidget->setTypingNotificationVisible(isTyping_);
     QString name = f->getDisplayedName();
     chatWidget->setTypingNotificationName(name);
 }
 
-void ChatForm::show(ContentLayout* contentLayout)
+void ChatForm::show(ContentLayout* contentLayout_)
 {
-    GenericChatForm::show(contentLayout);
+    GenericChatForm::show(contentLayout_);
 }
 
 void ChatForm::reloadTheme()
@@ -721,7 +767,7 @@ void ChatForm::showNetcam()
     bodySplitter->setCollapsible(0, false);
 
     QSize minSize = netcam->getSurfaceMinSize();
-    ContentDialog* current = ContentDialogManager::getInstance()->current();
+    ContentDialog* current = contentDialogManager.current();
     if (current) {
         current->onVideoShow(minSize);
     }
@@ -733,7 +779,7 @@ void ChatForm::hideNetcam()
         return;
     }
 
-    ContentDialog* current = ContentDialogManager::getInstance()->current();
+    ContentDialog* current = contentDialogManager.current();
     if (current) {
         current->onVideoHide();
     }
@@ -743,8 +789,10 @@ void ChatForm::hideNetcam()
     netcam.reset();
 }
 
-void ChatForm::onSplitterMoved(int, int)
+void ChatForm::onSplitterMoved(int pos, int index)
 {
+    std::ignore = pos;
+    std::ignore = index;
     if (netcam) {
         netcam->setShowMessages(bodySplitter->sizes()[1] == 0);
     }

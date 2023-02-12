@@ -22,6 +22,9 @@
 #include "genericsettings.h"
 
 class Core;
+class Settings;
+class Style;
+class Profile;
 
 namespace Ui {
 class PrivacySettings;
@@ -31,7 +34,7 @@ class PrivacyForm : public GenericForm
 {
     Q_OBJECT
 public:
-    PrivacyForm(Core* _core);
+    PrivacyForm(Core* core_, Settings& settings, Style& style, Profile& profile);
     ~PrivacyForm();
     QString getFormName() final
     {
@@ -48,7 +51,7 @@ private slots:
     void on_randomNosapamButton_clicked();
     void on_nospamLineEdit_textChanged();
     void on_blackListTextEdit_textChanged();
-    void showEvent(QShowEvent*) final;
+    void showEvent(QShowEvent* event) final;
 
 private:
     void retranslateUi();
@@ -56,4 +59,6 @@ private:
 private:
     Ui::PrivacySettings* bodyUI;
     Core* core;
+    Settings& settings;
+    Profile& profile;
 };

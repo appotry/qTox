@@ -42,10 +42,13 @@ QString getShortName(const QString& name)
 
 }
 
-FriendChatroom::FriendChatroom(Friend* frnd, IDialogsManager* dialogsManager, Core& _core)
-    : frnd{frnd}
-    , dialogsManager{dialogsManager}
-    , core{_core}
+FriendChatroom::FriendChatroom(Friend* frnd_, IDialogsManager* dialogsManager_,
+    Core& core_, Settings& settings_, GroupList& groupList_)
+    : frnd{frnd_}
+    , dialogsManager{dialogsManager_}
+    , core{core_}
+    , settings{settings_}
+    , groupList{groupList_}
 {
 }
 
@@ -54,7 +57,7 @@ Friend* FriendChatroom::getFriend()
     return frnd;
 }
 
-Contact* FriendChatroom::getContact()
+Chat* FriendChatroom::getChat()
 {
     return frnd;
 }
@@ -74,13 +77,13 @@ bool FriendChatroom::canBeInvited() const
 
 int FriendChatroom::getCircleId() const
 {
-    return Settings::getInstance().getFriendCircleID(frnd->getPublicKey());
+    return settings.getFriendCircleID(frnd->getPublicKey());
 }
 
 QString FriendChatroom::getCircleName() const
 {
     const auto circleId = getCircleId();
-    return Settings::getInstance().getCircleName(circleId);
+    return settings.getCircleName(circleId);
 }
 
 void FriendChatroom::inviteToNewGroup()
@@ -93,13 +96,13 @@ void FriendChatroom::inviteToNewGroup()
 QString FriendChatroom::getAutoAcceptDir() const
 {
     const auto pk = frnd->getPublicKey();
-    return Settings::getInstance().getAutoAcceptDir(pk);
+    return settings.getAutoAcceptDir(pk);
 }
 
 void FriendChatroom::setAutoAcceptDir(const QString& dir)
 {
     const auto pk = frnd->getPublicKey();
-    Settings::getInstance().setAutoAcceptDir(pk, dir);
+    settings.setAutoAcceptDir(pk, dir);
 }
 
 void FriendChatroom::disableAutoAccept()
@@ -122,7 +125,7 @@ void FriendChatroom::inviteFriend(const Group* group)
 QVector<GroupToDisplay> FriendChatroom::getGroups() const
 {
     QVector<GroupToDisplay> groups;
-    for (const auto group : GroupList::getAllGroups()) {
+    for (const auto group : groupList.getAllGroups()) {
         const auto name = getShortName(group->getName());
         const GroupToDisplay groupToDisplay = { name, group };
         groups.push_back(groupToDisplay);
@@ -138,13 +141,12 @@ QVector<CircleToDisplay> FriendChatroom::getOtherCircles() const
 {
     QVector<CircleToDisplay> circles;
     const auto currentCircleId = getCircleId();
-    const auto& s = Settings::getInstance();
-    for (int i = 0; i < s.getCircleCount(); ++i) {
+    for (int i = 0; i < settings.getCircleCount(); ++i) {
         if (i == currentCircleId) {
             continue;
         }
 
-        const auto name = getShortName(s.getCircleName(i));
+        const auto name = getShortName(settings.getCircleName(i));
         const CircleToDisplay circle = { name, i };
         circles.push_back(circle);
     }
@@ -175,14 +177,14 @@ bool FriendChatroom::canBeRemovedFromWindow() const
 {
     const auto friendPk = frnd->getPublicKey();
     const auto dialogs = dialogsManager->getFriendDialogs(friendPk);
-    return dialogs && dialogs->hasContact(friendPk);
+    return dialogs && dialogs->hasChat(friendPk);
 }
 
 bool FriendChatroom::friendCanBeRemoved() const
 {
     const auto friendPk = frnd->getPublicKey();
     const auto dialogs = dialogsManager->getFriendDialogs(friendPk);
-    return !dialogs || !dialogs->hasContact(friendPk);
+    return !dialogs || !dialogs->hasChat(friendPk);
 }
 
 void FriendChatroom::removeFriendFromDialogs()

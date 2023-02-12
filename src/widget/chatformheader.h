@@ -34,6 +34,8 @@ class QToolButton;
 class CallConfirmWidget;
 class QLabel;
 class ExtensionStatus;
+class Settings;
+class Style;
 
 class ChatFormHeader : public QWidget
 {
@@ -58,11 +60,11 @@ public:
         AV = Audio | Video
     };
 
-    ChatFormHeader(QWidget* parent = nullptr);
+    ChatFormHeader(Settings& settings, Style& style, QWidget* parent = nullptr);
     ~ChatFormHeader();
 
     void setName(const QString& newName);
-    void setMode(Mode mode);
+    void setMode(Mode mode_);
 
     void showOutgoingCall(bool video);
     void createCallConfirm(bool video);
@@ -119,4 +121,6 @@ private:
     ToolButtonState micState;
 
     std::unique_ptr<CallConfirmWidget> callConfirm;
+    Settings& settings;
+    Style& style;
 };

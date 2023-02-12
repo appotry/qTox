@@ -19,10 +19,17 @@
 
 #pragma once
 
-#include "src/model/contact.h"
+#include "src/model/chat.h"
 
 class Chatroom
 {
 public:
-    virtual Contact* getContact() = 0;
+    Chatroom() = default;
+    virtual ~Chatroom();
+    Chatroom(const Chatroom&) = default;
+    Chatroom& operator=(const Chatroom&) = default;
+    Chatroom(Chatroom&&) = default;
+    Chatroom& operator=(Chatroom&&) = default;
+
+    virtual Chat* getChat() = 0;
 };

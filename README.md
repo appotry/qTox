@@ -1,3 +1,28 @@
+# This repository and qTox are unmaintained!
+
+Due to a lack of resources, qTox is no longer maintained.
+
+If someone with provable C++ experience and sufficient resources to maintain
+qTox wants to take over I'm happy to discuss that. Meanwhile **be careful about
+"official forks" of qTox** unless you read it here, they are probably not
+official.
+
+I want to take the time and thank all
+[contributors](https://github.com/qTox/qTox/graphs/contributors) and
+especially the long term contributors and founders:
+
+- [anthonybilinski](https://github.com/anthonybilinski)
+- [Diadlo](https://github.com/Diadlo)
+- [iphydf](https://github.com/iphydf)
+- [nurupo](https://github.com/nurupo)
+- [tux3](https://github.com/tux3)
+- [zetok](https://github.com/zetok)
+
+It was fun working with all of you and I learned a lot!
+
+`So long, and thanks for all the fish!` - [sudden6](https://github.com/sudden6)
+
+
 <a name="qtox" />
 
 <p align="center">
@@ -9,9 +34,6 @@
 <p align="center">
 <a href="https://github.com/qTox/qTox/blob/master/LICENSE">
 <img src="https://img.shields.io/badge/license-GPLv3%2B-blue.svg" alt="GPLv3+" />
-</a>
-<a href="https://travis-ci.org/qTox/qTox">
-<img src="https://travis-ci.org/qTox/qTox.svg?branch=master" alt="Travis CI" />
 </a>
 <a href="https://hosted.weblate.org/engage/tox/?utm_source=widget">
 <img src="https://hosted.weblate.org/widgets/tox/-/svg-badge.svg"
@@ -83,7 +105,6 @@ The next steps are:
 * move all toxcore abstractions into their own subproject
 * write basic tests for this Core
 * format the code base
-* rework our TravisCI setup for faster PR checks
 * rethink our Issue tracker
 
 The current state is tracked in the [Code cleanup] project.
@@ -158,21 +179,21 @@ AED3 1134 9C23 A123 E5C4  AA4B 139C A045 3DA2 D773
 ```
 
 [#qtox@libera.chat]: https://web.libera.chat/#qtox
-[64 bit release]: https://github.com/qTox/qTox/releases/download/v1.17.3/setup-qtox-x86_64-release.exe
-[32 bit release]: https://github.com/qTox/qTox/releases/download/v1.17.3/setup-qtox-i686-release.exe
-[32nightly]: https://github.com/qTox/qTox-nightly-releases/releases/download/ci-master-latest/setup-qtox-i686-release.exe
-[64nightly]: https://github.com/qTox/qTox-nightly-releases/releases/download/ci-master-latest/setup-qtox-x86_64-release.exe
-[Flatpak]: https://github.com/qTox/qTox/releases/download/v1.17.3/qTox-v1.17.3.x86_64.flatpak
-[Flatpak nightly]: https://github.com/qTox/qTox-nightly-releases/releases/download/ci-master-latest/qtox.flatpak
-[AppImage]: https://github.com/qTox/qTox/releases/download/v1.17.3/qTox-v1.17.3.x86_64.AppImage
-[AppImage nightly]: https://github.com/qTox/qTox-nightly-releases/releases/tag/ci-master-latest
+[64 bit release]: https://github.com/qTox/qTox/releases/download/v1.17.6/setup-qtox-x86_64-release.exe
+[32 bit release]: https://github.com/qTox/qTox/releases/download/v1.17.6/setup-qtox-i686-release.exe
+[32nightly]: https://github.com/qTox/qTox/releases/download/nightly/qtox-nightly-i686-release.exe
+[64nightly]: https://github.com/qTox/qTox/releases/download/nightly/qtox-nightly-x86_64-release.exe
+[Flatpak]: https://github.com/qTox/qTox/releases/download/v1.17.6/qTox-v1.17.6.x86_64.flatpak
+[Flatpak nightly]: https://github.com/qTox/qTox/releases/download/nightly/qTox-nightly.flatpak
+[AppImage]: https://github.com/qTox/qTox/releases/download/v1.17.6/qTox-v1.17.6.x86_64.AppImage
+[AppImage nightly]: https://github.com/qTox/qTox/releases/download/nightly/qTox-nightly.x86_64.AppImage
 [Arch]: /INSTALL.md#arch
 [Building instructions]: /INSTALL.md#os-x
 [Contributing]: /CONTRIBUTING.md#how-to-start-contributing
 [Debian]: https://packages.debian.org/search?keywords=qtox
 [easy issues]: https://github.com/qTox/qTox/labels/E-easy
-[Latest release]: https://github.com/qTox/qTox/releases/download/v1.17.3/qTox.dmg
-[Latest nightly]: https://github.com/qTox/qTox-nightly-releases/releases/download/ci-master-latest/qTox.dmg
+[Latest release]: https://github.com/qTox/qTox/releases/download/v1.17.6/qTox.dmg
+[Latest nightly]: https://github.com/qTox/qTox/releases/download/nightly/qTox-nightly.dmg
 [Fedora]: /INSTALL.md#fedora
 [Gentoo]: /INSTALL.md#gentoo
 [openSUSE]: /INSTALL.md#opensuse

@@ -101,7 +101,7 @@ which may lead to problems with video calls.</source>
     </message>
     <message>
         <source>Use slider to set the volume of your speakers.</source>
-        <translation type="unfinished"></translation>
+        <translation>Використовуйте повзунок для налаштування гучності динаміків.</translation>
     </message>
     <message>
         <source>Transmitted audio quality. Lower this setting if your bandwidth is not high enough or if you want to reduce bandwidth usage.</source>
@@ -117,7 +117,7 @@ which may lead to problems with video calls.</source>
     </message>
     <message>
         <source>Play a test sound while changing the output volume.</source>
-        <translation type="unfinished"></translation>
+        <translation>Грати тестовий звук коли змінюється гучність виводу звуку.</translation>
     </message>
     <message>
         <source>Use slider to set the gain of your input device ranging from %1dB to %2dB.</source>
@@ -172,7 +172,7 @@ which may lead to problems with video calls.</source>
     <message>
         <source>bug-tracker</source>
         <comment>Replaces `%1` in the `A list of all known…`</comment>
-        <translation type="unfinished">баг-трекері</translation>
+        <translation>баг-трекери</translation>
     </message>
     <message>
         <source>Writing Useful Bug Reports</source>
@@ -201,7 +201,7 @@ which may lead to problems with video calls.</source>
     </message>
     <message>
         <source>Used aliases:</source>
-        <translation type="unfinished">Використовуємі псевдоніми:</translation>
+        <translation>Псевдоніми, що використовуються:</translation>
     </message>
     <message>
         <source>HISTORY OF ALIASES</source>
@@ -233,7 +233,7 @@ which may lead to problems with video calls.</source>
     </message>
     <message>
         <source>Remove history (operation can not be undone!)</source>
-        <translation type="unfinished">Видалити історію (операцію відмінити неможливо!)</translation>
+        <translation type="unfinished">Видалити історію (операцію скасувати неможливо!)</translation>
     </message>
     <message>
         <source>Notes</source>
@@ -588,6 +588,57 @@ which may lead to problems with video calls.</source>
     </message>
 </context>
 <context>
+    <name>AppManager</name>
+    <message>
+        <source>Tox URI to parse</source>
+        <translation>Tox URI для розбору</translation>
+    </message>
+    <message>
+        <source>Starts new instance and loads specified profile.</source>
+        <translation>Запускає новий екземпляр і завантажує вказаний профіль.</translation>
+    </message>
+    <message>
+        <source>profile</source>
+        <translation>профіль</translation>
+    </message>
+    <message>
+        <source>Starts new instance and opens the login screen.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>on/off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets proxy settings. Default is NONE.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation type="unfinished">Помилка</translation>
+    </message>
+    <message>
+        <source>Failed to load profile automatically.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ChatForm</name>
     <message>
         <source>Send a file</source>
@@ -598,20 +649,12 @@ which may lead to problems with video calls.</source>
         <translation>qTox не може відкрити файл %1</translation>
     </message>
     <message>
-        <source>%1 calling</source>
-        <translation>Дзвінок від %1</translation>
-    </message>
-    <message>
         <source>Unable to open</source>
         <translation>Неможливо відкрити</translation>
     </message>
     <message>
         <source>Bad idea</source>
         <translation>Погана ідея</translation>
-    </message>
-    <message>
-        <source>Calling %1</source>
-        <translation>Дзінок до %1</translation>
     </message>
     <message>
         <source>Failed to open temporary file</source>
@@ -623,10 +666,6 @@ which may lead to problems with video calls.</source>
         <translation>qTox не зміг зберегти скриншот</translation>
     </message>
     <message>
-        <source>Call with %1 ended. %2</source>
-        <translation>Дзвінок з %1 завершено. %2</translation>
-    </message>
-    <message>
         <source>Call duration: </source>
         <translation>Тривалість дзвінка: </translation>
     </message>
@@ -636,15 +675,6 @@ which may lead to problems with video calls.</source>
     </message>
     <message>
         <source>You&apos;re trying to send a sequential file, which is not going to work!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>%1 is now %2</source>
-        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
-        <translation type="unfinished">%1 тепер вже відомий як %2</translation>
-    </message>
-    <message>
-        <source>Call with %1 ended unexpectedly. %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -725,29 +755,29 @@ so you can save the file on Windows.</source>
     </message>
 </context>
 <context>
-    <name>ChatLog</name>
+    <name>ChatTextEdit</name>
     <message>
-        <source>Copy</source>
-        <translation>Копіювати</translation>
+        <source>Type your message here...</source>
+        <translation>Наберіть Ваше повідомлення тут…</translation>
     </message>
-    <message>
-        <source>Select all</source>
-        <translation>Виділити всі</translation>
-    </message>
+</context>
+<context>
+    <name>ChatWidget</name>
     <message>
         <source>pending</source>
-        <translation>очікування</translation>
+        <translation type="unfinished">очікування</translation>
     </message>
     <message>
         <source>%1 is typing</source>
         <translation type="unfinished">%1 набирає повідомлення</translation>
     </message>
-</context>
-<context>
-    <name>ChatTextEdit</name>
     <message>
-        <source>Type your message here...</source>
-        <translation>Наберіть Ваше повідомлення тут…</translation>
+        <source>Copy</source>
+        <translation type="unfinished">Копіювати</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation type="unfinished">Виділити всі</translation>
     </message>
 </context>
 <context>
@@ -1164,6 +1194,10 @@ instead of closing entirely.</source>
         <comment>autoaccept cb tooltip</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Add a chat message when a user joins or leaves a group</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GenericChatForm</name>
@@ -1190,10 +1224,6 @@ instead of closing entirely.</source>
     <message>
         <source>Clear displayed messages</source>
         <translation>Очистити показані повідомлення</translation>
-    </message>
-    <message>
-        <source>Cleared</source>
-        <translation>Очищено</translation>
     </message>
     <message>
         <source>Quote selected text</source>
@@ -1230,22 +1260,6 @@ instead of closing entirely.</source>
 </context>
 <context>
     <name>GroupChatForm</name>
-    <message>
-        <source>%1 has set the title to %2</source>
-        <translation type="unfinished">%1 встановив тему %2</translation>
-    </message>
-    <message>
-        <source>%1 has joined the group</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>%1 is now known as %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>%1 has left the group</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message numerus="yes">
         <source>%n user(s) in chat</source>
         <comment>Number of users in chat</comment>
@@ -1485,31 +1499,11 @@ Share it with your friends to begin chatting.</source>
 <context>
     <name>LoadHistoryDialog</name>
     <message>
-        <source>Load history</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>from</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>to</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(about 100 messages are loaded)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select a date</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Load history dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select date dialog</source>
+        <source>Load history from:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1764,6 +1758,19 @@ Please make sure to enter the same password twice.</source>
     <message>
         <source>Open Settings</source>
         <translation>Відкрити налаштування</translation>
+    </message>
+</context>
+<context>
+    <name>MessageBoxManager</name>
+    <message>
+        <source>Executable file</source>
+        <comment>popup title</comment>
+        <translation type="unfinished">Виконуваний файл</translation>
+    </message>
+    <message>
+        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
+        <comment>popup text</comment>
+        <translation type="unfinished">Ви намагаєтеся відкрити виконуваний файл. Виконувані файли можуть нанести шкоди вашому комп’ютеру. Ви все ще хочете відкрити цей файл?</translation>
     </message>
 </context>
 <context>
@@ -2266,18 +2273,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
 <context>
     <name>QObject</name>
     <message>
-        <source>Tox URI to parse</source>
-        <translation>Tox URI для розбору</translation>
-    </message>
-    <message>
-        <source>Starts new instance and loads specified profile.</source>
-        <translation>Запускає новий екземпляр і завантажує вказаний профіль.</translation>
-    </message>
-    <message>
-        <source>profile</source>
-        <translation>профіль</translation>
-    </message>
-    <message>
         <source>Default</source>
         <translation>Типовий</translation>
     </message>
@@ -2328,10 +2323,6 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <translation>Робочий стіл</translation>
     </message>
     <message>
-        <source>Starts new instance and opens the login screen.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Dark</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2349,10 +2340,6 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
     </message>
     <message>
         <source>Dark violet</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Failed to load profile automatically.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2386,30 +2373,6 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>on/off</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets proxy settings. Default is NONE.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>%1 message(s) from %2 chats</source>
         <extracomment>e.g. 3 messages from 2 chats</extracomment>
         <translation type="unfinished"></translation>
@@ -2424,28 +2387,149 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <comment>contact status</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Failed to send file &quot;%1&quot;</source>
+        <translation type="unfinished">Не вдалось відправити файл &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>%1 has joined the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 has left the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is now known as %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 has set the title to %2</source>
+        <translation type="unfinished">%1 встановив тему %2</translation>
+    </message>
+    <message>
+        <source>Cleared</source>
+        <translation type="unfinished">Очищено</translation>
+    </message>
+    <message>
+        <source>Call with %1 ended unexpectedly. %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Call with %1 ended. %2</source>
+        <translation type="unfinished">Дзвінок з %1 завершено. %2</translation>
+    </message>
+    <message>
+        <source>%1 is now %2</source>
+        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
+        <translation type="unfinished">%1 тепер вже відомий як %2</translation>
+    </message>
+    <message>
+        <source>Calling %1</source>
+        <translation type="unfinished">Дзінок до %1</translation>
+    </message>
+    <message>
+        <source>%1 calling</source>
+        <translation type="unfinished">Дзвінок від %1</translation>
+    </message>
+    <message>
+        <source>Message failed to send</source>
+        <translation type="unfinished">Не вдалось відправити повідомлення</translation>
+    </message>
+    <message>
+        <source>Initializing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transmitting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Finished</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Broken</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation type="unfinished">Призупинено</translation>
+    </message>
+    <message>
+        <source>Remote paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation type="unfinished">Статус</translation>
+    </message>
+    <message>
+        <source>Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have joined the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have left the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load chat history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Database version (%1) is newer than we currently support (%2). Please upgrade qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
-    <name>RemoveFriendDialog</name>
+    <name>RemoveChatDialog</name>
     <message>
         <source>Remove friend</source>
-        <translation>Вилучити з друзів</translation>
+        <translation type="unfinished">Вилучити з друзів</translation>
+    </message>
+    <message>
+        <source>Remove all chat history with the friend if set</source>
+        <translation type="unfinished">Коли встановлено, видаляти усю історію спілкування з другом</translation>
     </message>
     <message>
         <source>Also remove chat history</source>
-        <translation>Також видалити історію переписки</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Видалити</translation>
+        <translation type="unfinished">Також видалити історію переписки</translation>
     </message>
     <message>
         <source>Are you sure you want to remove %1 from your contacts list?</source>
         <translation type="unfinished">Ви дійсно хочете видалити %1 з вашого списку контактів?</translation>
     </message>
     <message>
-        <source>Remove all chat history with the friend if set</source>
-        <translation>Коли встановлено, видаляти усю історію спілкування з другом</translation>
+        <source>Remove</source>
+        <translation type="unfinished">Видалити</translation>
     </message>
 </context>
 <context>
@@ -2529,6 +2613,14 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <source>Use regular expressions</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Select Date Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a date</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SetPasswordDialog</name>
@@ -2578,6 +2670,18 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
     <message>
         <source>Circle #%1</source>
         <translation>Коло №%1</translation>
+    </message>
+    <message>
+        <source>Failed to load personal settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to upgrade settings from version %1 to version %2. Cannot start qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load global settings</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2870,26 +2974,12 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <translation>Контакти</translation>
     </message>
     <message>
-        <source>Executable file</source>
-        <comment>popup title</comment>
-        <translation>Виконуваний файл</translation>
-    </message>
-    <message>
-        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
-        <comment>popup text</comment>
-        <translation>Ви намагаєтеся відкрити виконуваний файл. Виконувані файли можуть нанести шкоди вашому комп’ютеру. Ви все ще хочете відкрити цей файл?</translation>
-    </message>
-    <message>
         <source>Status</source>
         <translation>Статус</translation>
     </message>
     <message>
         <source>Your name</source>
         <translation>Ваше ім&apos;я</translation>
-    </message>
-    <message>
-        <source>Message failed to send</source>
-        <translation>Не вдалось відправити повідомлення</translation>
     </message>
     <message>
         <source>Groupchat #%1</source>
@@ -2928,10 +3018,6 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
         <source>My profile</source>
         <comment>title of the window</comment>
         <translation>Мій профіль</translation>
-    </message>
-    <message>
-        <source>Failed to send file &quot;%1&quot;</source>
-        <translation type="unfinished">Не вдалось відправити файл &quot;%1&quot;</translation>
     </message>
     <message>
         <source>Toxcore failed to start, the application will terminate after you close this message.</source>
@@ -2989,7 +3075,7 @@ It&apos;s difficult to translate &quot;Tox me maybe&quot; because in Ukrainian n
     </message>
     <message>
         <source>Previous conversation</source>
-        <translation type="unfinished"></translation>
+        <translation>Попередня розмова</translation>
     </message>
 </context>
 </TS>

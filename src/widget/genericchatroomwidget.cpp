@@ -25,9 +25,12 @@
 #include <QBoxLayout>
 #include <QMouseEvent>
 
-GenericChatroomWidget::GenericChatroomWidget(bool compact, QWidget* parent)
-    : GenericChatItemWidget(compact, parent)
+GenericChatroomWidget::GenericChatroomWidget(bool compact_, Settings& settings_,
+    Style& style_, QWidget* parent)
+    : GenericChatItemWidget(compact_, style_, parent)
     , active{false}
+    , settings{settings_}
+    , style{style_}
 {
     // avatar
     QSize size;
@@ -47,8 +50,7 @@ GenericChatroomWidget::GenericChatroomWidget(bool compact, QWidget* parent)
     nameLabel->setForegroundRole(QPalette::WindowText);
     nameLabel->setObjectName("nameLabelObj");
 
-    Settings& s = Settings::getInstance();
-    connect(&s, &Settings::compactLayoutChanged, this, &GenericChatroomWidget::compactChange);
+    connect(&settings, &Settings::compactLayoutChanged, this, &GenericChatroomWidget::compactChange);
 
     setAutoFillBackground(true);
     reloadTheme();
@@ -56,8 +58,10 @@ GenericChatroomWidget::GenericChatroomWidget(bool compact, QWidget* parent)
     compactChange(isCompact());
 }
 
-bool GenericChatroomWidget::eventFilter(QObject*, QEvent*)
+bool GenericChatroomWidget::eventFilter(QObject* object, QEvent* event)
 {
+    std::ignore = object;
+    std::ignore = event;
     return true; // Disable all events.
 }
 
@@ -94,8 +98,8 @@ void GenericChatroomWidget::compactChange(bool _compact)
         mainLayout->addWidget(&statusPic);
         mainLayout->addSpacing(5);
         mainLayout->activate();
-        statusMessageLabel->setFont(Style::getFont(Style::Small));
-        nameLabel->setFont(Style::getFont(Style::Medium));
+        statusMessageLabel->setFont(Style::getFont(Style::Font::Small));
+        nameLabel->setFont(Style::getFont(Style::Font::Medium));
     } else {
         setFixedHeight(55);
         avatar->setSize(QSize(40, 40));
@@ -111,8 +115,8 @@ void GenericChatroomWidget::compactChange(bool _compact)
         mainLayout->addWidget(&statusPic);
         mainLayout->addSpacing(10);
         mainLayout->activate();
-        statusMessageLabel->setFont(Style::getFont(Style::Medium));
-        nameLabel->setFont(Style::getFont(Style::Big));
+        statusMessageLabel->setFont(Style::getFont(Style::Font::Medium));
+        nameLabel->setFont(Style::getFont(Style::Font::Big));
     }
 }
 
@@ -158,7 +162,7 @@ QString GenericChatroomWidget::getTitle() const
 
 void GenericChatroomWidget::reloadTheme()
 {
-    setStyleSheet(Style::getStylesheet("genericChatRoomWidget/genericChatRoomWidget.css"));
+    setStyleSheet(style.getStylesheet("genericChatRoomWidget/genericChatRoomWidget.css", settings));
 }
 
 void GenericChatroomWidget::activate()
@@ -177,8 +181,9 @@ void GenericChatroomWidget::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-void GenericChatroomWidget::enterEvent(QEvent*)
+void GenericChatroomWidget::enterEvent(QEvent* event)
 {
+    std::ignore = event;
     if (!active)
         setBackgroundRole(QPalette::Highlight);
 }

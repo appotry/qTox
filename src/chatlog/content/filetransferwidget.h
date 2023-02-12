@@ -23,7 +23,6 @@
 #include <QWidget>
 
 #include "src/chatlog/chatlinecontent.h"
-#include "src/chatlog/toxfileprogress.h"
 #include "src/core/toxfile.h"
 
 class CoreFile;
@@ -34,17 +33,19 @@ class FileTransferWidget;
 
 class QVariantAnimation;
 class QPushButton;
+class Settings;
+class Style;
+class IMessageBoxManager;
 
 class FileTransferWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit FileTransferWidget(QWidget* parent, CoreFile& _coreFile, ToxFile file);
+    FileTransferWidget(QWidget* parent, CoreFile& _coreFile, ToxFile file,
+        Settings& settings, Style& style, IMessageBoxManager& messageBoxManager);
     virtual ~FileTransferWidget();
     bool isActive() const;
-    static QString getHumanReadableSize(qint64 size);
-
     void onFileTransferUpdate(ToxFile file);
 
 protected:
@@ -62,7 +63,7 @@ protected:
 
     bool drawButtonAreaNeeded() const;
 
-    void paintEvent(QPaintEvent*) final;
+    void paintEvent(QPaintEvent* event) final;
 
 public slots:
     void reloadTheme();
@@ -73,9 +74,6 @@ private slots:
     void onPreviewButtonClicked();
 
 private:
-    static QPixmap scaleCropIntoSquare(const QPixmap& source, int targetSize);
-    static int getExifOrientation(const char* data, const int size);
-    static void applyTransformation(const int oritentation, QImage& image);
     static bool tryRemoveFile(const QString &filepath);
 
     void updateWidget(ToxFile const& file);
@@ -84,7 +82,6 @@ private:
 private:
     CoreFile& coreFile;
     Ui::FileTransferWidget* ui;
-    ToxFileProgress fileProgress;
     ToxFile fileInfo;
     QVariantAnimation* backgroundColorAnimation = nullptr;
     QVariantAnimation* buttonColorAnimation = nullptr;
@@ -93,6 +90,9 @@ private:
     QColor buttonBackgroundColor;
 
     bool active;
+    QTime lastTransmissionUpdate;
     ToxFile::FileStatus lastStatus = ToxFile::INITIALIZING;
-
+    Settings& settings;
+    Style& style;
+    IMessageBoxManager& messageBoxManager;
 };

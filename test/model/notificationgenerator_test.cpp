@@ -19,9 +19,10 @@
 */
 
 #include "src/model/notificationgenerator.h"
+#include "src/friendlist.h"
 
-#include "test/mock/mockcoreidhandler.h"
-#include "test/mock/mockgroupquery.h"
+#include "mock/mockcoreidhandler.h"
+#include "mock/mockgroupquery.h"
 
 #include <QObject>
 #include <QtTest/QtTest>
@@ -32,25 +33,25 @@ namespace
     {
         virtual bool getNotify() const override { return true; }
 
-        virtual void setNotify(bool newValue) override {}
+        virtual void setNotify(bool newValue) override { std::ignore = newValue; }
 
         virtual bool getShowWindow() const override { return true; }
-        virtual void setShowWindow(bool newValue) override {}
+        virtual void setShowWindow(bool newValue) override { std::ignore = newValue; }
 
         virtual bool getDesktopNotify() const override { return true; }
-        virtual void setDesktopNotify(bool enabled) override {}
+        virtual void setDesktopNotify(bool enabled) override { std::ignore = enabled; }
 
         virtual bool getNotifySound() const override { return true; }
-        virtual void setNotifySound(bool newValue) override {}
+        virtual void setNotifySound(bool newValue) override { std::ignore = newValue; }
 
         virtual bool getNotifyHide() const override { return notifyHide; }
         virtual void setNotifyHide(bool newValue) override { notifyHide = newValue; };
 
         virtual bool getBusySound() const override { return true; }
-        virtual void setBusySound(bool newValue) override {}
+        virtual void setBusySound(bool newValue) override { std::ignore = newValue; }
 
         virtual bool getGroupAlwaysNotify() const override { return true; }
-        virtual void setGroupAlwaysNotify(bool newValue) override {}
+        virtual void setGroupAlwaysNotify(bool newValue) override { std::ignore = newValue; }
     private:
         bool notifyHide = false;
     };
@@ -89,10 +90,12 @@ private:
     std::unique_ptr<NotificationGenerator> notificationGenerator;
     std::unique_ptr<MockGroupQuery> groupQuery;
     std::unique_ptr<MockCoreIdHandler> coreIdHandler;
+    std::unique_ptr<FriendList> friendList;
 };
 
 void TestNotificationGenerator::init()
 {
+    friendList.reset(new FriendList());
     notificationSettings.reset(new MockNotificationSettings());
     notificationGenerator.reset(new NotificationGenerator(*notificationSettings, nullptr));
     groupQuery.reset(new MockGroupQuery());
@@ -139,7 +142,7 @@ void TestNotificationGenerator::testNotificationClear()
 
 void TestNotificationGenerator::testGroupMessage()
 {
-    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler);
+    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
     auto sender = groupQuery->getGroupPeerPk(0, 0);
     g.updateUsername(sender, "sender1");
 
@@ -150,7 +153,7 @@ void TestNotificationGenerator::testGroupMessage()
 
 void TestNotificationGenerator::testMultipleGroupMessages()
 {
-    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler);
+    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
 
     auto sender = groupQuery->getGroupPeerPk(0, 0);
     g.updateUsername(sender, "sender1");
@@ -182,8 +185,8 @@ void TestNotificationGenerator::testMultipleFriendSourceMessages()
 
 void TestNotificationGenerator::testMultipleGroupSourceMessages()
 {
-    Group g(0, GroupId(QByteArray(32, 0)), "groupName", false, "selfName", *groupQuery, *coreIdHandler);
-    Group g2(1, GroupId(QByteArray(32, 1)), "groupName2", false, "selfName", *groupQuery, *coreIdHandler);
+    Group g(0, GroupId(QByteArray(32, 0)), "groupName", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
+    Group g2(1, GroupId(QByteArray(32, 1)), "groupName2", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
 
     auto sender = groupQuery->getGroupPeerPk(0, 0);
     g.updateUsername(sender, "sender1");
@@ -200,7 +203,7 @@ void TestNotificationGenerator::testMixedSourceMessages()
     Friend f(0, ToxPk());
     f.setName("friend");
 
-    Group g(0, GroupId(QByteArray(32, 0)), "group", false, "selfName", *groupQuery, *coreIdHandler);
+    Group g(0, GroupId(QByteArray(32, 0)), "group", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
 
     auto sender = groupQuery->getGroupPeerPk(0, 0);
     g.updateUsername(sender, "sender1");
@@ -315,7 +318,7 @@ void TestNotificationGenerator::testSimpleFileTransfer()
 
 void TestNotificationGenerator::testSimpleGroupMessage()
 {
-    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler);
+    Group g(0, GroupId(0), "groupName", false, "selfName", *groupQuery, *coreIdHandler, *friendList);
     auto sender = groupQuery->getGroupPeerPk(0, 0);
     g.updateUsername(sender, "sender1");
 

@@ -20,11 +20,17 @@
 #pragma once
 
 #include <QList>
-class DhtServer;
+struct DhtServer;
 
 class IBootstrapListGenerator
 {
 public:
-    virtual ~IBootstrapListGenerator() = default;
-    virtual QList<DhtServer> getBootstrapnodes() = 0;
+    IBootstrapListGenerator() = default;
+    virtual ~IBootstrapListGenerator();
+    IBootstrapListGenerator(const IBootstrapListGenerator&) = default;
+    IBootstrapListGenerator& operator=(const IBootstrapListGenerator&) = default;
+    IBootstrapListGenerator(IBootstrapListGenerator&&) = default;
+    IBootstrapListGenerator& operator=(IBootstrapListGenerator&&) = default;
+
+    virtual QList<DhtServer> getBootstrapNodes() const = 0;
 };

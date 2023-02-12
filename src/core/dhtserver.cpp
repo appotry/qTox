@@ -32,8 +32,9 @@ bool DhtServer::operator==(const DhtServer& other) const
         && ipv4 == other.ipv4
         && ipv6 == other.ipv6
         && maintainer == other.maintainer
-        && userId == other.userId
-        && port == other.port);
+        && publicKey == other.publicKey
+        && udpPort == other.udpPort
+        && tcpPorts == other.tcpPorts);
 }
 
 /**

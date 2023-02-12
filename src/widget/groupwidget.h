@@ -27,11 +27,15 @@
 
 #include <memory>
 
+class Settings;
+class Style;
+
 class GroupWidget final : public GenericChatroomWidget, public IFriendListItem
 {
     Q_OBJECT
 public:
-    GroupWidget(std::shared_ptr<GroupChatroom> chatroom, bool compact);
+    GroupWidget(std::shared_ptr<GroupChatroom> chatroom_, bool compact, Settings& settings,
+        Style& style);
     ~GroupWidget();
     void setAsInactiveChatroom() final;
     void setAsActiveChatroom() final;
@@ -39,7 +43,7 @@ public:
     void resetEventFlags() final;
     QString getStatusString() const final;
     Group* getGroup() const final;
-    const Contact* getContact() const final;
+    const Chat* getChat() const final;
     void setName(const QString& name);
     void editName();
 
@@ -47,8 +51,10 @@ public:
     bool isGroup() const final;
     QString getNameItem() const final;
     bool isOnline() const final;
+    bool widgetIsVisible() const final;
     QDateTime getLastActivity() const final;
     QWidget* getWidget() final;
+    void setWidgetVisible(bool visible) final;
 
 signals:
     void groupWidgetClicked(GroupWidget* widget);

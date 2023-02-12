@@ -21,6 +21,7 @@
 
 #include "genericchatform.h"
 #include "src/core/toxpk.h"
+#include "src/persistence/igroupsettings.h"
 #include <QMap>
 
 namespace Ui {
@@ -33,12 +34,23 @@ class QTimer;
 class GroupId;
 class IMessageDispatcher;
 struct Message;
+class Settings;
+class DocumentCache;
+class SmileyPack;
+class Style;
+class IMessageBoxManager;
+class FriendList;
+class GroupList;
 
 class GroupChatForm : public GenericChatForm
 {
     Q_OBJECT
 public:
-    explicit GroupChatForm(Core& _core, Group* chatGroup, IChatLog& chatLog, IMessageDispatcher& messageDispatcher);
+    GroupChatForm(Core& core_, Group* chatGroup, IChatLog& chatLog_,
+        IMessageDispatcher& messageDispatcher_, Settings& settings_,
+        DocumentCache& documentCache, SmileyPack& smileyPack, Style& style,
+            IMessageBoxManager& messageBoxManager, FriendList& friendList,
+            GroupList& groupList);
     ~GroupChatForm();
 
     void peerAudioPlaying(ToxPk peerPk);
@@ -78,4 +90,7 @@ private:
     QLabel* nusersLabel;
     TabCompleter* tabber;
     bool inCall;
+    Settings& settings;
+    Style& style;
+    FriendList& friendList;
 };

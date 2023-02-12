@@ -31,7 +31,6 @@
 #include "src/persistence/settings.h"
 #include "src/widget/form/setpassworddialog.h"
 #include "src/widget/form/settingswidget.h"
-#include "src/widget/gui.h"
 #include "src/widget/tool/recursivesignalblocker.h"
 #include "src/widget/translator.h"
 #include "src/widget/widget.h"
@@ -39,10 +38,12 @@
 #include <chrono>
 #include <random>
 
-PrivacyForm::PrivacyForm(Core* _core)
-    : GenericForm(QPixmap(":/img/settings/privacy.png"))
+PrivacyForm::PrivacyForm(Core* core_, Settings& settings_, Style& style, Profile& profile_)
+    : GenericForm(QPixmap(":/img/settings/privacy.png"), style)
     , bodyUI(new Ui::PrivacySettings)
-    , core{_core}
+    , core{core_}
+    , settings{settings_}
+    , profile{profile_}
 {
     bodyUI->setupUi(this);
 
@@ -61,7 +62,7 @@ PrivacyForm::~PrivacyForm()
 
 void PrivacyForm::on_cbKeepHistory_stateChanged()
 {
-    Settings::getInstance().setEnableLogging(bodyUI->cbKeepHistory->isChecked());
+    settings.setEnableLogging(bodyUI->cbKeepHistory->isChecked());
     if (!bodyUI->cbKeepHistory->isChecked()) {
         emit clearAllReceipts();
         QMessageBox::StandardButton dialogDelHistory;
@@ -70,14 +71,14 @@ void PrivacyForm::on_cbKeepHistory_stateChanged()
                                   tr("Do you want to permanently delete all chat history?"),
                                   QMessageBox::Yes | QMessageBox::No);
         if (dialogDelHistory == QMessageBox::Yes) {
-            Nexus::getProfile()->getHistory()->eraseHistory();
+            profile.getHistory()->eraseHistory();
         }
     }
 }
 
 void PrivacyForm::on_cbTypingNotification_stateChanged()
 {
-    Settings::getInstance().setTypingNotification(bodyUI->cbTypingNotification->isChecked());
+    settings.setTypingNotification(bodyUI->cbTypingNotification->isChecked());
 }
 
 void PrivacyForm::on_nospamLineEdit_editingFinished()
@@ -91,12 +92,13 @@ void PrivacyForm::on_nospamLineEdit_editingFinished()
     }
 }
 
-void PrivacyForm::showEvent(QShowEvent*)
+void PrivacyForm::showEvent(QShowEvent* event)
 {
-    const Settings& s = Settings::getInstance();
+    std::ignore = event;
+    const Settings& s = settings;
     bodyUI->nospamLineEdit->setText(core->getSelfId().getNoSpamString());
     bodyUI->cbTypingNotification->setChecked(s.getTypingNotification());
-    bodyUI->cbKeepHistory->setChecked(Settings::getInstance().getEnableLogging());
+    bodyUI->cbKeepHistory->setChecked(settings.getEnableLogging());
     bodyUI->blackListTextEdit->setText(s.getBlackList().join('\n'));
 }
 
@@ -125,7 +127,7 @@ void PrivacyForm::on_nospamLineEdit_textChanged()
 void PrivacyForm::on_blackListTextEdit_textChanged()
 {
     const QStringList strlist = bodyUI->blackListTextEdit->toPlainText().split('\n');
-    Settings::getInstance().setBlackList(strlist);
+    settings.setBlackList(strlist);
 }
 
 void PrivacyForm::retranslateUi()

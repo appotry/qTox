@@ -21,6 +21,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <atomic>
 
 #define PATHS_VERSION_TCS_COMPLIANT 0
 
@@ -33,8 +34,9 @@ public:
         NonPortable     /** Force non-portable mode */
     };
 
-    static Paths* makePaths(Portable mode = Portable::Auto);
+    Paths(Portable mode = Portable::Auto);
 
+    bool setPortable(bool portable);
     bool isPortable() const;
 #if PATHS_VERSION_TCS_COMPLIANT
     QString getGlobalSettingsPath() const;
@@ -49,14 +51,12 @@ public:
     QString getSettingsDirPath() const;
     QString getAppDataDirPath() const;
     QString getAppCacheDirPath() const;
+    QString getExampleNodesFilePath() const;
     QString getUserNodesFilePath() const;
+    QString getBackupUserNodesFilePath() const;
 #endif
 
-
 private:
-    Paths(const QString &basePath, bool portable);
-
-private:
-    QString basePath{};
-    const bool portable = false;
+    QString basePath;
+    std::atomic_bool portable{false};
 };

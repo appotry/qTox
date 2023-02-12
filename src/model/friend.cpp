@@ -24,19 +24,21 @@
 #include "src/widget/form/chatform.h"
 
 #include <QDebug>
-#include <memory>
 
-Friend::Friend(uint32_t friendId, const ToxPk& friendPk, const QString& userAlias, const QString& userName)
-    : userName{userName}
-    , userAlias{userAlias}
-    , friendPk{friendPk}
-    , friendId{friendId}
+#include <memory>
+#include <cassert>
+
+Friend::Friend(uint32_t friendId_, const ToxPk& friendPk_, const QString& userAlias_, const QString& userName_)
+    : userName{userName_}
+    , userAlias{userAlias_}
+    , friendPk{friendPk_}
+    , friendId{friendId_}
     , hasNewEvents{false}
     , friendStatus{Status::Status::Offline}
     , isNegotiating{false}
 {
-    if (userName.isEmpty()) {
-        this->userName = friendPk.toString();
+    if (userName_.isEmpty()) {
+        userName = friendPk.toString();
     }
 }
 
@@ -118,6 +120,13 @@ QString Friend::getDisplayedName() const
     return userAlias;
 }
 
+QString Friend::getDisplayedName(const ToxPk& contact) const
+{
+    std::ignore = contact;
+    assert(contact == friendPk);
+    return getDisplayedName();
+}
+
 bool Friend::hasAlias() const
 {
     return !userAlias.isEmpty();
@@ -138,7 +147,7 @@ uint32_t Friend::getId() const
     return friendId;
 }
 
-const ContactId& Friend::getPersistentId() const
+const ChatId& Friend::getPersistentId() const
 {
     return friendPk;
 }
@@ -190,11 +199,6 @@ void Friend::setStatus(Status::Status s)
 Status::Status Friend::getStatus() const
 {
     return isNegotiating ? Status::Status::Negotiating : friendStatus;
-}
-
-bool Friend::useHistory() const
-{
-    return true;
 }
 
 void Friend::setExtendedMessageSupport(bool supported)

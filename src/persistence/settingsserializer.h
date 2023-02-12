@@ -29,7 +29,15 @@
 class SettingsSerializer
 {
 public:
-    SettingsSerializer(QString filePath, const ToxEncrypt* passKey = nullptr);
+    enum class RecordTag : uint8_t
+    {
+        Value = 0,
+        GroupStart = 1,
+        ArrayStart = 2,
+        ArrayValue = 3,
+        ArrayEnd = 4,
+    };
+    SettingsSerializer(QString filePath_, const ToxEncrypt* passKey_ = nullptr);
 
     static bool isSerializedFormat(QString filePath);
 
@@ -48,17 +56,6 @@ public:
     QVariant value(const QString& key, const QVariant& defaultValue = QVariant()) const;
 
 private:
-    enum class RecordTag : uint8_t
-    {
-        Value = 0,
-        GroupStart = 1,
-        ArrayStart = 2,
-        ArrayValue = 3,
-        ArrayEnd = 4,
-    };
-    friend QDataStream& writeStream(QDataStream& dataStream, const SettingsSerializer::RecordTag& tag);
-    friend QDataStream& readStream(QDataStream& dataStream, SettingsSerializer::RecordTag& tag);
-
     struct Value
     {
         Value()
@@ -69,12 +66,12 @@ private:
             , value{}
         {
         }
-        Value(qint64 group, qint64 array, int arrayIndex, QString key, QVariant value)
-            : group{group}
-            , array{array}
-            , arrayIndex{arrayIndex}
-            , key{key}
-            , value{value}
+        Value(qint64 group_, qint64 array_, int arrayIndex_, QString key_, QVariant value_)
+            : group{group_}
+            , array{array_}
+            , arrayIndex{arrayIndex_}
+            , key{key_}
+            , value{value_}
         {
         }
         qint64 group;

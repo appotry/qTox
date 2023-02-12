@@ -28,11 +28,12 @@ class QByteArray;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
+class IMessageBoxManager;
 class ToxURIDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit ToxURIDialog(QWidget* parent, Core& _core);
+    ToxURIDialog(QWidget* parent, Core& core, IMessageBoxManager& messageBoxManager);
     QString getRequestMessage();
     bool handleToxURI(const QString& toxURI);
 
@@ -44,4 +45,5 @@ private:
     QLabel* friendsLabel;
     QLineEdit* userIdEdit;
     Core& core;
+    IMessageBoxManager& messageBoxManager;
 };

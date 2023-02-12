@@ -22,21 +22,21 @@
 #include <QStack>
 
 class QTextDocument;
+class SmileyPack;
+class Settings;
 
 class DocumentCache
 {
 public:
-    static DocumentCache& getInstance();
-
-    QTextDocument* pop();
-    void push(QTextDocument* doc);
-
-private:
-    DocumentCache() = default;
+    DocumentCache(SmileyPack& smileyPack, Settings& settings);
     ~DocumentCache();
     DocumentCache(DocumentCache&) = delete;
     DocumentCache& operator=(const DocumentCache&) = delete;
 
+    QTextDocument* pop();
+    void push(QTextDocument* doc);
 private:
     QStack<QTextDocument*> documents;
+    SmileyPack& smileyPack;
+    Settings& settings;
 };

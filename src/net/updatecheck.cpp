@@ -99,9 +99,10 @@ bool isCurrentVersionStable()
 
 } // namespace
 
-UpdateCheck::UpdateCheck(const Settings& settings)
-    : settings(settings)
+UpdateCheck::UpdateCheck(const Settings& settings_)
+    : settings(settings_)
 {
+    qInfo() << "qTox is running version:" << GIT_DESCRIBE;
     updateTimer.start(1000 * 60 * 60 * 24 /* 1 day */);
     connect(&updateTimer, &QTimer::timeout, this, &UpdateCheck::checkForUpdate);
     connect(&manager, &QNetworkAccessManager::finished, this, &UpdateCheck::handleResponse);
@@ -113,6 +114,13 @@ void UpdateCheck::checkForUpdate()
         // still run the timer to check periodically incase setting changes
         return;
     }
+
+    if (isCurrentVersionStable() == false) {
+        qWarning() << "Currently running an untested/unstable version of qTox";
+        emit versionIsUnstable();
+        return;
+    }
+
     manager.setProxy(settings.getProxy());
     QNetworkRequest request{versionUrl};
     manager.get(request);
@@ -120,13 +128,6 @@ void UpdateCheck::checkForUpdate()
 
 void UpdateCheck::handleResponse(QNetworkReply* reply)
 {
-    qInfo() << "qTox is running version:" << GIT_DESCRIBE;
-
-    if (isCurrentVersionStable() == false) {
-        qWarning() << "Currently running an untested/unstable version of qTox";
-        emit versionIsUnstable();
-    }
-
     assert(reply != nullptr);
     if (reply == nullptr) {
         qWarning() << "Update check returned null reply, ignoring";

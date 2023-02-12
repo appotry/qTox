@@ -19,6 +19,7 @@
 
 #include "notificationgenerator.h"
 #include "src/chatlog/content/filetransferwidget.h"
+#include "util/display.h"
 
 #include <QCollator>
 
@@ -156,11 +157,13 @@ namespace
 } // namespace
 
 NotificationGenerator::NotificationGenerator(
-    INotificationSettings const& notificationSettings,
-    Profile* profile)
-    : notificationSettings(notificationSettings)
-    , profile(profile)
+    INotificationSettings const& notificationSettings_,
+    Profile* profile_)
+    : notificationSettings(notificationSettings_)
+    , profile(profile_)
 {}
+
+NotificationGenerator::~NotificationGenerator() = default;
 
 NotificationData NotificationGenerator::friendMessageNotification(const Friend* f, const QString& message)
 {
@@ -221,7 +224,7 @@ NotificationData NotificationGenerator::fileTransferNotification(const Friend* f
     {
         //: e.g. Bob - file transfer
         ret.title = tr("%1 - file transfer").arg(f->getDisplayedName());
-        ret.message = filename + " (" + FileTransferWidget::getHumanReadableSize(fileSize) + ")";
+        ret.message = filename + " (" + getHumanReadableSize(fileSize) + ")";
     }
 
     ret.pixmap = getSenderAvatar(profile, f->getPublicKey());

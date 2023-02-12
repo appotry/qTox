@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "contact.h"
+#include "chat.h"
 
-#include "src/core/contactid.h"
+#include "src/core/chatid.h"
 #include "src/core/groupid.h"
 #include "src/core/icoregroupquery.h"
 #include "src/core/icoreidhandler.h"
@@ -31,12 +31,15 @@
 #include <QObject>
 #include <QStringList>
 
-class Group : public Contact
+class FriendList;
+
+class Group : public Chat
 {
     Q_OBJECT
 public:
-    Group(int groupId, const GroupId persistentGroupId, const QString& name, bool isAvGroupchat,
-          const QString& selfName, ICoreGroupQuery& groupQuery, ICoreIdHandler& idHandler);
+    Group(int groupId_, const GroupId persistentGroupId, const QString& name, bool isAvGroupchat,
+          const QString& selfName_, ICoreGroupQuery& groupQuery_, ICoreIdHandler& idHandler_,
+          FriendList& friendList);
     bool isAvGroupchat() const;
     uint32_t getId() const override;
     const GroupId& getPersistentId() const override;
@@ -56,11 +59,10 @@ public:
     void setTitle(const QString& author, const QString& newTitle);
     QString getName() const;
     QString getDisplayedName() const override;
-    QString resolveToxId(const ToxPk& id) const;
+    QString getDisplayedName(const ToxPk& contact) const override;
+    QString resolveToxPk(const ToxPk& id) const;
     void setSelfName(const QString& name);
     QString getSelfName() const;
-
-    bool useHistory() const final;
 
 signals:
     void titleChangedByUser(const QString& title);
@@ -81,4 +83,5 @@ private:
     int toxGroupNum;
     const GroupId groupId;
     bool avGroupchat;
+    FriendList& friendList;
 };

@@ -27,6 +27,11 @@
 
 class CoreFile;
 class QGraphicsScene;
+class DocumentCache;
+class SmileyPack;
+class Settings;
+class Style;
+class IMessageBoxManager;
 
 class ChatMessage : public ChatLine
 {
@@ -47,17 +52,23 @@ public:
         ALERT,
     };
 
-    ChatMessage();
+    ChatMessage(DocumentCache& documentCache, Settings& settings, Style& style);
+    ~ChatMessage();
+    ChatMessage(const ChatMessage&) = default;
+    ChatMessage(ChatMessage&&) = default;
 
     static ChatMessage::Ptr createChatMessage(const QString& sender, const QString& rawMessage,
                                               MessageType type, bool isMe, MessageState state,
-                                              const QDateTime& date, bool colorizeName = false);
+                                              const QDateTime& date, DocumentCache& documentCache,
+                                              SmileyPack& smileyPack, Settings& settings, Style& style, bool colorizeName = false);
     static ChatMessage::Ptr createChatInfoMessage(const QString& rawMessage, SystemMessageType type,
-                                                  const QDateTime& date);
+                                                  const QDateTime& date, DocumentCache& documentCache, Settings& settings,
+                                                  Style& style);
     static ChatMessage::Ptr createFileTransferMessage(const QString& sender, CoreFile& coreFile,
-                                                      ToxFile file, bool isMe, const QDateTime& date);
-    static ChatMessage::Ptr createTypingNotification();
-    static ChatMessage::Ptr createBusyNotification();
+                                                      ToxFile file, bool isMe, const QDateTime& date,
+                                                      DocumentCache& documentCache, Settings& settings, Style& style, IMessageBoxManager& messageBoxManager);
+    static ChatMessage::Ptr createTypingNotification(DocumentCache& documentCache, Settings& settings, Style& style);
+    static ChatMessage::Ptr createBusyNotification(DocumentCache& documentCache, Settings& settings, Style& style);
 
     void markAsDelivered(const QDateTime& time);
     void markAsBroken();
@@ -73,4 +84,7 @@ protected:
 
 private:
     bool action = false;
+    DocumentCache& documentCache;
+    Settings& settings;
+    Style& style;
 };

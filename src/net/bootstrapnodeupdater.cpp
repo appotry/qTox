@@ -20,6 +20,8 @@
 #include "bootstrapnodeupdater.h"
 
 #include "src/persistence/paths.h"
+#include "src/core/toxpk.h"
+#include "src/core/toxid.h"
 
 #include <QDirIterator>
 #include <QFile>
@@ -29,6 +31,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QRegularExpression>
+#include <QJsonArray>
+
+#include <cstdint>
 
 namespace NodeFields {
 const QLatin1String status_udp{"status_udp"};
@@ -36,11 +41,10 @@ const QLatin1String status_tcp{"status_tcp"};
 const QLatin1String ipv4{"ipv4"};
 const QLatin1String ipv6{"ipv6"};
 const QLatin1String public_key{"public_key"};
-const QLatin1String port{"port"};
+const QLatin1String udp_port{"port"};
 const QLatin1String maintainer{"maintainer"};
-// TODO(sudden6): make use of this field once we differentiate between TCP nodes, and bootstrap nodes
 const QLatin1String tcp_ports{"tcp_ports"};
-const QStringList neededFields{status_udp, status_tcp, ipv4, ipv6, public_key, port, maintainer};
+const QStringList neededFields{status_udp, status_tcp, ipv4, ipv6, public_key, udp_port, tcp_ports, maintainer};
 } // namespace NodeFields
 
 namespace {
@@ -63,13 +67,22 @@ void jsonNodeToDhtServer(const QJsonObject& node, QList<DhtServer>& outList)
         return;
     }
 
-    // only use nodes that provide at least UDP connection
-    if (!node[NodeFields::status_udp].toBool(false)) {
-        return;
-    }
-
     const QString public_key = node[NodeFields::public_key].toString({});
-    const int port = node[NodeFields::port].toInt(-1);
+    const auto udp_port = node[NodeFields::udp_port].toInt(-1);
+    const auto status_udp = node[NodeFields::status_udp].toBool(false);
+    const auto status_tcp = node[NodeFields::status_tcp].toBool(false);
+    const QString maintainer = node[NodeFields::maintainer].toString({});
+
+    std::vector<uint16_t> tcp_ports;
+    const auto jsonTcpPorts = node[NodeFields::tcp_ports].toArray();
+    for (int i = 0; i < jsonTcpPorts.count(); ++i) {
+        const auto port = jsonTcpPorts.at(i).toInt();
+        if (port < 1 || port > std::numeric_limits<uint16_t>::max()) {
+            qDebug  () << "Invalid TCP port in nodes list:" << port;
+            return;
+        }
+        tcp_ports.emplace_back(static_cast<uint16_t>(port));
+    }
 
     // nodes.tox.chat doesn't use empty strings for empty addresses
     QString ipv6_address = node[NodeFields::ipv6].toString({});
@@ -86,13 +99,19 @@ void jsonNodeToDhtServer(const QJsonObject& node, QList<DhtServer>& outList)
         qWarning() << "Both ipv4 and ipv4 addresses are empty for" << public_key;
     }
 
-    const QString maintainer = node[NodeFields::maintainer].toString({});
+    if (status_udp && udp_port == -1) {
+        qWarning() << "UDP enabled but no UDP port for" << public_key;
+    }
 
-    if (port < 1 || port > std::numeric_limits<uint16_t>::max()) {
-        qDebug() << "Invalid port in nodes list:" << port;
+    if (status_tcp && tcp_ports.empty()) {
+        qWarning() << "TCP enabled but no TCP ports for:" << public_key;
+    }
+
+    if (udp_port < 1 || udp_port > std::numeric_limits<uint16_t>::max()) {
+        qDebug() << "Invalid port in nodes list:" << udp_port;
         return;
     }
-    const quint16 port_u16 = static_cast<quint16>(port);
+    const quint16 udp_port_u16 = static_cast<quint16>(udp_port);
 
     if (!public_key.contains(ToxPkRegEx)) {
         qDebug() << "Invalid public key in nodes list" << public_key;
@@ -101,9 +120,10 @@ void jsonNodeToDhtServer(const QJsonObject& node, QList<DhtServer>& outList)
 
     DhtServer server;
     server.statusUdp = true;
-    server.statusTcp = node[NodeFields::status_udp].toBool(false);
-    server.userId = public_key;
-    server.port = port_u16;
+    server.statusTcp = status_tcp;
+    server.tcpPorts = tcp_ports;
+    server.publicKey = ToxPk{public_key};
+    server.udpPort = udp_port_u16;
     server.maintainer = maintainer;
     server.ipv4 = ipv4_address;
     server.ipv6 = ipv6_address;
@@ -143,7 +163,7 @@ QList<DhtServer> loadNodesFile(QString file)
         return {};
     }
 
-    QString nodesJson = nodesFile.readAll();
+    QString nodesJson = QString::fromUtf8(nodesFile.readAll());
     nodesFile.close();
 
     auto jsonDoc = QJsonDocument::fromJson(nodesJson.toUtf8());
@@ -164,9 +184,15 @@ QByteArray serialize(QList<DhtServer> nodes)
         nodeJson.insert(NodeFields::status_tcp, node.statusTcp);
         nodeJson.insert(NodeFields::ipv4, node.ipv4);
         nodeJson.insert(NodeFields::ipv6, node.ipv6);
-        nodeJson.insert(NodeFields::public_key, node.userId);
-        nodeJson.insert(NodeFields::port, node.port);
+        nodeJson.insert(NodeFields::public_key, node.publicKey.toString());
+        nodeJson.insert(NodeFields::udp_port, node.udpPort);
         nodeJson.insert(NodeFields::maintainer, node.maintainer);
+
+        QJsonArray tcp_ports;
+        for (size_t i = 0; i < node.tcpPorts.size(); ++i) {
+            tcp_ports.push_back(node.tcpPorts.at(i));
+        }
+        nodeJson.insert(NodeFields::tcp_ports, tcp_ports);
         jsonNodes.append(nodeJson);
     }
     QJsonObject rootObj;
@@ -175,35 +201,41 @@ QByteArray serialize(QList<DhtServer> nodes)
     QJsonDocument doc{rootObj};
     return doc.toJson(QJsonDocument::Indented);
 }
+
+void createExampleBootstrapNodesFile(const Paths& paths)
+{
+    // deserialize and reserialize instead of just copying to strip out any unnecessary json, making it easier for
+    // users to edit. Overwrite the file on every start to keep it up to date when our internal list updates.
+    auto buildInNodes = loadNodesFile(builtinNodesFile);
+    auto serializedNodes = serialize(buildInNodes);
+
+    QFile outFile(paths.getExampleNodesFilePath());
+    outFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    outFile.write(serializedNodes.data(), serializedNodes.size());
+    outFile.close();
+}
 } // namespace
 
 /**
  * @brief Fetches a list of currently online bootstrap nodes from node.tox.chat
  * @param proxy Proxy to use for the lookup, must outlive this object
  */
-BootstrapNodeUpdater::BootstrapNodeUpdater(const QNetworkProxy& proxy, Paths& _paths, QObject* parent)
-    : proxy{proxy}
-    , paths{_paths}
-    , QObject{parent}
-{}
+BootstrapNodeUpdater::BootstrapNodeUpdater(const QNetworkProxy& proxy_, Paths& paths_, QObject* parent)
+    : QObject{parent}
+    , proxy{proxy_}
+    , paths{paths_}
+{
+    createExampleBootstrapNodesFile(paths_);
+}
 
-QList<DhtServer> BootstrapNodeUpdater::getBootstrapnodes()
+QList<DhtServer> BootstrapNodeUpdater::getBootstrapNodes() const
 {
     auto userFilePath = paths.getUserNodesFilePath();
-    if (!QFile(userFilePath).exists()) {
-        qInfo() << "Bootstrap node list not found, creating one with default nodes.";
-        // deserialize and reserialize instead of just copying to strip out any unnecessary json, making it easier for
-        // users to edit
-        auto buildInNodes = loadNodesFile(builtinNodesFile);
-        auto serializedNodes = serialize(buildInNodes);
-
-        QFile outFile(userFilePath);
-        outFile.open(QIODevice::WriteOnly | QIODevice::Text);
-        outFile.write(serializedNodes.data(), serializedNodes.size());
-        outFile.close();
+    if (QFile::exists(userFilePath)) {
+        return loadNodesFile(userFilePath);
+    } else {
+        return loadNodesFile(builtinNodesFile);
     }
-
-    return loadNodesFile(userFilePath);
 }
 
 void BootstrapNodeUpdater::requestBootstrapNodes()

@@ -23,9 +23,10 @@
 #include "src/widget/style.h"
 
 #include <QFont>
-#include <QTextCursor>
 
 class QTextDocument;
+class DocumentCache;
+class Settings;
 
 class Text : public ChatLineContent
 {
@@ -39,8 +40,13 @@ public:
         CUSTOM
     };
 
-    Text(const QString& txt = "", const QFont& font = QFont(), bool enableElide = false,
-         const QString& rawText = QString(), const TextType& type = NORMAL, const QColor& custom = Style::getColor(Style::MainText));
+    Text(DocumentCache& documentCache, Settings& settings, Style& style, const QColor& custom,
+        const QString& txt = "", const QFont& font = QFont(),
+        bool enableElide = false, const QString& rawText = QString(),
+        const TextType& type = NORMAL);
+    Text(DocumentCache& documentCache, Settings& settings, Style& style, const QString& txt = "", const QFont& font = QFont(),
+        bool enableElide = false, const QString& rawText = QString(),
+        const TextType& type = NORMAL);
     virtual ~Text();
 
     void setText(const QString& txt);
@@ -48,7 +54,7 @@ public:
     void selectText(const QRegularExpression& exp, const std::pair<int, int>& point);
     void deselectText();
 
-    void setWidth(qreal width) final;
+    void setWidth(float width) final;
 
     void selectionMouseMove(QPointF scenePos) final;
     void selectionStarted(QPointF scenePos) final;
@@ -63,7 +69,7 @@ public:
     QRectF boundingRect() const final;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final;
 
-    void visibilityChanged(bool keepInMemory) final;
+    void visibilityChanged(bool visible) final;
     void reloadTheme() final;
 
     qreal getAscent() const final;
@@ -106,11 +112,11 @@ private:
     int selectionAnchor = -1;
     qreal ascent = 0.0;
     QFont defFont;
-    QString defStyleSheet;
     TextType textType;
     QColor color;
     QColor customColor;
-
-    QTextCursor selectCursor;
-    std::pair<int, int> selectPoint{0, 0};
+    DocumentCache& documentCache;
+    Settings& settings;
+    QString defStyleSheet;
+    Style& style;
 };

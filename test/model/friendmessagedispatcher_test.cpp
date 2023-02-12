@@ -28,29 +28,22 @@
 #include <set>
 #include <deque>
 
-static constexpr uint64_t testMaxExtendedMessageSize = 10 * 1024 * 1024;
-
+namespace {
+constexpr uint64_t testMaxExtendedMessageSize = 10 * 1024 * 1024;
+}
 
 class MockCoreExtPacket : public ICoreExtPacket
 {
 public:
 
-    MockCoreExtPacket(uint64_t& numSentMessages, uint64_t& currentReceiptId)
-        : numSentMessages(numSentMessages)
-        , currentReceiptId(currentReceiptId)
+    MockCoreExtPacket(uint64_t& numSentMessages_, uint64_t& currentReceiptId_)
+        : numSentMessages(numSentMessages_)
+        , currentReceiptId(currentReceiptId_)
     {}
 
-    uint64_t addExtendedMessage(QString message) override
-    {
-        this->message = message;
-        return currentReceiptId++;
-    }
+    uint64_t addExtendedMessage(QString message_) override;
 
-    bool send() override
-    {
-        numSentMessages++;
-        return true;
-    }
+    bool send() override;
 
     uint64_t& numSentMessages;
     uint64_t& currentReceiptId;
@@ -58,46 +51,70 @@ public:
     QString message;
 };
 
+uint64_t MockCoreExtPacket::addExtendedMessage(QString message_)
+{
+    message = message_;
+    return currentReceiptId++;
+}
+
+bool MockCoreExtPacket::send()
+{
+    numSentMessages++;
+    return true;
+}
+
 class MockCoreExtPacketAllocator : public ICoreExtPacketAllocator
 {
 public:
-    std::unique_ptr<ICoreExtPacket> getPacket(uint32_t friendId) override
-    {
-        return std::unique_ptr<MockCoreExtPacket>(new MockCoreExtPacket(numSentMessages, currentReceiptId));
-    }
+    std::unique_ptr<ICoreExtPacket> getPacket(uint32_t friendId) override;
 
     uint64_t numSentMessages;
     uint64_t currentReceiptId;
 };
 
+std::unique_ptr<ICoreExtPacket> MockCoreExtPacketAllocator::getPacket(uint32_t friendId)
+{
+    std::ignore = friendId;
+    return std::unique_ptr<MockCoreExtPacket>(new MockCoreExtPacket(numSentMessages, currentReceiptId));
+}
+
 class MockFriendMessageSender : public ICoreFriendMessageSender
 {
 public:
-    bool sendAction(uint32_t friendId, const QString& action, ReceiptNum& receipt) override
-    {
-        if (canSend) {
-            numSentActions++;
-            receipt = receiptNum;
-            receiptNum.get() += 1;
-        }
-        return canSend;
-    }
+    bool sendAction(uint32_t friendId, const QString& action, ReceiptNum& receipt) override;
 
-    bool sendMessage(uint32_t friendId, const QString& message, ReceiptNum& receipt) override
-    {
-        if (canSend) {
-            numSentMessages++;
-            receipt = receiptNum;
-            receiptNum.get() += 1;
-        }
-        return canSend;
-    }
+    bool sendMessage(uint32_t friendId, const QString& message, ReceiptNum& receipt) override;
 
     bool canSend = true;
     ReceiptNum receiptNum{0};
     size_t numSentActions = 0;
     size_t numSentMessages = 0;
 };
+
+bool MockFriendMessageSender::sendAction(uint32_t friendId, const QString& action, ReceiptNum& receipt)
+{
+    std::ignore = friendId;
+    std::ignore = action;
+    if (canSend) {
+        numSentActions++;
+        receipt = receiptNum;
+        receiptNum.get() += 1;
+    }
+    return canSend;
+}
+
+bool MockFriendMessageSender::sendMessage(uint32_t friendId, const QString& message, ReceiptNum& receipt)
+{
+    std::ignore = friendId;
+    std::ignore = message;
+    if (canSend) {
+        numSentMessages++;
+        receipt = receiptNum;
+        receiptNum.get() += 1;
+    }
+    return canSend;
+}
+
 class TestFriendMessageDispatcher : public QObject
 {
     Q_OBJECT
@@ -133,11 +150,13 @@ private slots:
 
     void onMessageReceived(const ToxPk& sender, Message message)
     {
+        std::ignore = sender;
         receivedMessages.push_back(std::move(message));
     }
 
-    void onMessageBroken(DispatchedMessageId id, BrokenMessageReason)
+    void onMessageBroken(DispatchedMessageId id, BrokenMessageReason reason)
     {
+        std::ignore = reason;
         brokenMessages.insert(id);
     }
 
@@ -381,7 +400,7 @@ void TestFriendMessageDispatcher::testActionMessagesSplitWithExtensions()
     auto reallyLongMessage = QString("a");
 
     for (uint64_t i = 0; i < testMaxExtendedMessageSize + 50; ++i) {
-        reallyLongMessage += i;
+        reallyLongMessage += QString().number(i);
     }
 
     friendMessageDispatcher->sendMessage(true, reallyLongMessage);

@@ -27,12 +27,16 @@
 #include <memory>
 
 class QIcon;
+class SmileyPack;
+class Settings;
+class Style;
 
 class EmoticonsWidget : public QMenu
 {
     Q_OBJECT
 public:
-    explicit EmoticonsWidget(QWidget* parent = nullptr);
+    EmoticonsWidget(SmileyPack& smileyPack, Settings& settings, Style& style,
+        QWidget* parent = nullptr);
 
 signals:
     void insertEmoticon(QString str);

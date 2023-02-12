@@ -17,7 +17,9 @@
     along with qTox.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "src/persistence/ismileysettings.h"
 #include "src/persistence/smileypack.h"
+#include "util/interface.h"
 
 #include <QtTest/QtTest>
 #include <QSignalSpy>
@@ -28,7 +30,18 @@
 
 #include <memory>
 
-QString getAsRichText(const QString& key);
+class MockSettings : public QObject, public ISmileySettings
+{
+Q_OBJECT
+public:
+    QString getSmileyPack() const override;
+    SIGNAL_IMPL(MockSettings, smileyPackChanged, const QString& name);
+};
+
+QString MockSettings::getSmileyPack() const
+{
+    return ":/smileys/emojione/emoticons.xml";
+}
 
 class TestSmileyPack : public QObject
 {
@@ -42,6 +55,7 @@ private slots:
     void testSmilifyAsciiEmoticon();
 private:
     std::unique_ptr<QGuiApplication> app;
+    std::unique_ptr<MockSettings> settings;
 };
 
 TestSmileyPack::TestSmileyPack()
@@ -53,6 +67,7 @@ TestSmileyPack::TestSmileyPack()
     static int qtTestAppArgc = 3;
 
     app = std::unique_ptr<QGuiApplication>(new QGuiApplication(qtTestAppArgc, qtTestAppArgv));
+    settings = std::unique_ptr<MockSettings>(new MockSettings());
 }
 
 /**
@@ -60,13 +75,13 @@ TestSmileyPack::TestSmileyPack()
  */
 void TestSmileyPack::testSmilifySingleCharEmoji()
 {
-    auto& smileyPack = SmileyPack::getInstance();
+    SmileyPack smileyPack{*settings};
 
     auto result = smileyPack.smileyfied("😊");
-    QVERIFY(result == getAsRichText("😊"));
+    QVERIFY(result == SmileyPack::getAsRichText("😊"));
 
     result = smileyPack.smileyfied("Some😊Letters");
-    QVERIFY(result == "Some" + getAsRichText("😊") + "Letters");
+    QVERIFY(result == "Some" + SmileyPack::getAsRichText("😊") + "Letters");
 }
 
 /**
@@ -75,18 +90,18 @@ void TestSmileyPack::testSmilifySingleCharEmoji()
  */
 void TestSmileyPack::testSmilifyMultiCharEmoji()
 {
-    auto& smileyPack = SmileyPack::getInstance();
+    SmileyPack smileyPack{*settings};
 
     auto result = smileyPack.smileyfied("🇬🇧");
-    QVERIFY(result == getAsRichText("🇬🇧"));
+    QVERIFY(result == SmileyPack::getAsRichText("🇬🇧"));
 
     result = smileyPack.smileyfied("Some🇬🇧Letters");
-    QVERIFY(result == "Some" + getAsRichText("🇬🇧") + "Letters");
+    QVERIFY(result == "Some" + SmileyPack::getAsRichText("🇬🇧") + "Letters");
 
     // This verifies that multi-char emojis are not accidentally
     // considered a multichar ascii smiley
     result = smileyPack.smileyfied("🇫🇷🇬🇧");
-    QVERIFY(result == getAsRichText("🇫🇷") + getAsRichText("🇬🇧"));
+    QVERIFY(result == SmileyPack::getAsRichText("🇫🇷") + SmileyPack::getAsRichText("🇬🇧"));
 }
 
 
@@ -96,12 +111,12 @@ void TestSmileyPack::testSmilifyMultiCharEmoji()
  */
 void TestSmileyPack::testSmilifyAsciiEmoticon()
 {
-    auto& smileyPack = SmileyPack::getInstance();
+    SmileyPack smileyPack{*settings};
 
     auto result = smileyPack.smileyfied(":-)");
-    QVERIFY(result == getAsRichText(":-)"));
+    QVERIFY(result == SmileyPack::getAsRichText(":-)"));
 
-    constexpr auto testMsg = "Some:-)Letters";
+    const auto testMsg = QStringLiteral("Some:-)Letters");
     result = smileyPack.smileyfied(testMsg);
 
     // Nothing has changed. Ascii smileys are only considered
@@ -109,7 +124,7 @@ void TestSmileyPack::testSmilifyAsciiEmoticon()
     QVERIFY(result == testMsg);
 
     result = smileyPack.smileyfied("  :-)  ");
-    QVERIFY(result == "  " + getAsRichText(":-)") + "  ");
+    QVERIFY(result == "  " + SmileyPack::getAsRichText(":-)") + "  ");
 }
 
 

@@ -25,9 +25,11 @@
 #include "src/persistence/profile.h"
 #include "src/persistence/profilelocker.h"
 #include "src/persistence/settingsserializer.h"
+#include "src/persistence/globalsettingsupgrader.h"
+#include "src/persistence/personalsettingsupgrader.h"
 #include "src/persistence/smileypack.h"
-#include "src/widget/gui.h"
 #include "src/widget/style.h"
+#include "src/widget/tool/imessageboxmanager.h"
 #ifdef QTOX_PLATFORM_EXT
 #include "src/platform/autorun.h"
 #endif
@@ -39,6 +41,7 @@
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
+#include <QErrorMessage>
 #include <QFile>
 #include <QFont>
 #include <QList>
@@ -58,20 +61,21 @@
  */
 
 const QString Settings::globalSettingsFile = "qtox.ini";
-Settings* Settings::settings{nullptr};
 CompatibleRecursiveMutex Settings::bigLock;
 QThread* Settings::settingsThread{nullptr};
+static constexpr int GLOBAL_SETTINGS_VERSION = 1;
+static constexpr int PERSONAL_SETTINGS_VERSION = 1;
 
-Settings::Settings()
+Settings::Settings(IMessageBoxManager& messageBoxManager_)
     : loaded(false)
     , useCustomDhtList{false}
-    , makeToxPortable{false}
     , currentProfileId(0)
-    , paths(*Paths::makePaths(Paths::Portable::NonPortable))
+    , messageBoxManager{messageBoxManager_}
 {
     settingsThread = new QThread();
     settingsThread->setObjectName("qTox Settings");
     settingsThread->start(QThread::LowPriority);
+    qRegisterMetaType<const ToxEncrypt*>("const ToxEncrypt*");
     moveToThread(settingsThread);
     loadGlobal();
 }
@@ -84,23 +88,6 @@ Settings::~Settings()
     delete settingsThread;
 }
 
-/**
- * @brief Returns the singleton instance.
- */
-Settings& Settings::getInstance()
-{
-    if (!settings)
-        settings = new Settings();
-
-    return *settings;
-}
-
-void Settings::destroyInstance()
-{
-    delete settings;
-    settings = nullptr;
-}
-
 void Settings::loadGlobal()
 {
     QMutexLocker locker{&bigLock};
@@ -110,21 +97,39 @@ void Settings::loadGlobal()
 
     createSettingsDir();
 
-    makeToxPortable = Settings::isToxPortable();
-
     QDir dir(paths.getSettingsDirPath());
     QString filePath = dir.filePath(globalSettingsFile);
 
     // If no settings file exist -- use the default one
+    bool defaultSettings = false;
     if (!QFile(filePath).exists()) {
         qDebug() << "No settings file found, using defaults";
         filePath = ":/conf/" + globalSettingsFile;
+        defaultSettings = true;
     }
 
     qDebug() << "Loading settings from " + filePath;
 
     QSettings s(filePath, QSettings::IniFormat);
     s.setIniCodec("UTF-8");
+
+    s.beginGroup("Version");
+    {
+        const auto defaultVersion = defaultSettings ? GLOBAL_SETTINGS_VERSION : 0;
+        globalSettingsVersion = s.value("settingsVersion", defaultVersion).toInt();
+    }
+    s.endGroup();
+
+    auto upgradeSuccess = GlobalSettingsUpgrader::doUpgrade(*this, globalSettingsVersion, GLOBAL_SETTINGS_VERSION);
+    if (!upgradeSuccess) {
+        messageBoxManager.showError(tr("Failed to load global settings"),
+            tr("Unable to upgrade settings from version %1 to version %2. Cannot start qTox.")
+            .arg(globalSettingsVersion)
+            .arg(GLOBAL_SETTINGS_VERSION));
+        std::terminate();
+        return;
+    }
+    globalSettingsVersion = GLOBAL_SETTINGS_VERSION;
 
     s.beginGroup("Login");
     {
@@ -162,7 +167,7 @@ void Settings::loadGlobal()
 
     s.beginGroup("Advanced");
     {
-        makeToxPortable = s.value("makeToxPortable", false).toBool();
+        paths.setPortable(s.value("makeToxPortable", false).toBool());
         enableIPv6 = s.value("enableIPv6", true).toBool();
         forceTCP = s.value("forceTCP", false).toBool();
         enableLanDiscovery = s.value("enableLanDiscovery", true).toBool();
@@ -204,6 +209,7 @@ void Settings::loadGlobal()
         lightTrayIcon = s.value("lightTrayIcon", false).toBool();
         useEmoticons = s.value("useEmoticons", true).toBool();
         statusChangeNotificationEnabled = s.value("statusChangeNotificationEnabled", false).toBool();
+        showGroupJoinLeaveMessages = s.value("showGroupJoinLeaveMessages", false).toBool();
         spellCheckingEnabled = s.value("spellCheckingEnabled", true).toBool();
         themeColor = s.value("themeColor", 0).toInt();
         style = s.value("style", "").toString();
@@ -220,7 +226,7 @@ void Settings::loadGlobal()
 
     s.beginGroup("Chat");
     {
-        chatMessageFont = s.value("chatMessageFont", Style::getFont(Style::Big)).value<QFont>();
+        chatMessageFont = s.value("chatMessageFont", Style::getFont(Style::Font::Big)).value<QFont>();
     }
     s.endGroup();
 
@@ -262,21 +268,7 @@ void Settings::loadGlobal()
     loaded = true;
 }
 
-bool Settings::isToxPortable()
-{
-    QString localSettingsPath = qApp->applicationDirPath() + QDir::separator() + globalSettingsFile;
-    if (!QFile(localSettingsPath).exists()) {
-        return false;
-    }
-    QSettings ps(localSettingsPath, QSettings::IniFormat);
-    ps.setIniCodec("UTF-8");
-    ps.beginGroup("Advanced");
-    bool result = ps.value("makeToxPortable", false).toBool();
-    ps.endGroup();
-    return result;
-}
-
-void Settings::updateProfileData(Profile* profile, const QCommandLineParser* parser)
+void Settings::updateProfileData(Profile* profile, const QCommandLineParser* parser, bool newProfile)
 {
     QMutexLocker locker{&bigLock};
 
@@ -286,7 +278,7 @@ void Settings::updateProfileData(Profile* profile, const QCommandLineParser* par
     }
     setCurrentProfile(profile->getName());
     saveGlobal();
-    loadPersonal(profile->getName(), profile->getPasskey());
+    loadPersonal(*profile, newProfile);
     if (parser) {
         applyCommandLineOptions(*parser);
     }
@@ -475,23 +467,43 @@ bool Settings::applyCommandLineOptions(const QCommandLineParser& parser)
     return true;
 }
 
-void Settings::loadPersonal(QString profileName, const ToxEncrypt* passKey)
+void Settings::loadPersonal(const Profile& profile, bool newProfile)
 {
     QMutexLocker locker{&bigLock};
 
+    loadedProfile = &profile;
     QDir dir(paths.getSettingsDirPath());
     QString filePath = dir.filePath(globalSettingsFile);
 
     // load from a profile specific friend data list if possible
-    QString tmp = dir.filePath(profileName + ".ini");
-    if (QFile(tmp).exists()) // otherwise, filePath remains the global file
+    QString tmp = dir.filePath(profile.getName() + ".ini");
+    if (QFile(tmp).exists()) { // otherwise, filePath remains the global file
         filePath = tmp;
+    }
 
     qDebug() << "Loading personal settings from" << filePath;
 
-    SettingsSerializer ps(filePath, passKey);
+    SettingsSerializer ps(filePath, profile.getPasskey());
     ps.load();
     friendLst.clear();
+
+    ps.beginGroup("Version");
+    {
+        const auto defaultVersion = newProfile ? PERSONAL_SETTINGS_VERSION : 0;
+        personalSettingsVersion = ps.value("settingsVersion", defaultVersion).toInt();
+    }
+    ps.endGroup();
+
+    auto upgradeSuccess = PersonalSettingsUpgrader::doUpgrade(ps, personalSettingsVersion, PERSONAL_SETTINGS_VERSION);
+    if (!upgradeSuccess) {
+        messageBoxManager.showError(tr("Failed to load personal settings"),
+            tr("Unable to upgrade settings from version %1 to version %2. Cannot start qTox.")
+            .arg(personalSettingsVersion)
+            .arg(PERSONAL_SETTINGS_VERSION));
+        std::terminate();
+        return;
+    }
+    personalSettingsVersion = PERSONAL_SETTINGS_VERSION;
 
     ps.beginGroup("Privacy");
     {
@@ -522,7 +534,7 @@ void Settings::loadPersonal(QString profileName, const ToxEncrypt* passKey)
 
             if (getEnableLogging())
                 fp.activity = ps.value("activity", QDateTime()).toDateTime();
-            friendLst.insert(ToxId(fp.addr).getPublicKey().getByteArray(), fp);
+            friendLst.insert(ToxPk(fp.addr).getByteArray(), fp);
         }
         ps.endArray();
     }
@@ -586,8 +598,7 @@ void Settings::resetToDefault()
 
     // Remove file with profile settings
     QDir dir(paths.getSettingsDirPath());
-    Profile* profile = Nexus::getProfile();
-    QString localPath = dir.filePath(profile->getName() + ".ini");
+    QString localPath = dir.filePath(loadedProfile->getName() + ".ini");
     QFile local(localPath);
     if (local.exists())
         local.remove();
@@ -599,7 +610,7 @@ void Settings::resetToDefault()
 void Settings::saveGlobal()
 {
     if (QThread::currentThread() != settingsThread)
-        return (void)QMetaObject::invokeMethod(&getInstance(), "saveGlobal");
+        return (void)QMetaObject::invokeMethod(this, "saveGlobal");
 
     QMutexLocker locker{&bigLock};
     if (!loaded)
@@ -640,7 +651,7 @@ void Settings::saveGlobal()
 
     s.beginGroup("Advanced");
     {
-        s.setValue("makeToxPortable", makeToxPortable);
+        s.setValue("makeToxPortable", paths.isPortable());
         s.setValue("enableIPv6", enableIPv6);
         s.setValue("forceTCP", forceTCP);
         s.setValue("enableLanDiscovery", enableLanDiscovery);
@@ -681,6 +692,7 @@ void Settings::saveGlobal()
         s.setValue("style", style);
         s.setValue("nameColors", nameColors);
         s.setValue("statusChangeNotificationEnabled", statusChangeNotificationEnabled);
+        s.setValue("showGroupJoinLeaveMessages", showGroupJoinLeaveMessages);
         s.setValue("spellCheckingEnabled", spellCheckingEnabled);
     }
     s.endGroup();
@@ -725,30 +737,26 @@ void Settings::saveGlobal()
         s.setValue("screenGrabbed", screenGrabbed);
     }
     s.endGroup();
-}
 
-/**
- * @brief Asynchronous, saves the current profile.
- */
-void Settings::savePersonal()
-{
-    savePersonal(Nexus::getProfile());
+    s.beginGroup("Version");
+    {
+        s.setValue("settingsVersion", globalSettingsVersion);
+    }
+    s.endGroup();
 }
 
 /**
  * @brief Asynchronous, saves the profile.
- * @param profile Profile to save.
  */
-void Settings::savePersonal(Profile* profile)
+void Settings::savePersonal()
 {
-    if (!profile) {
+    if (!loadedProfile) {
         qDebug() << "Could not save personal settings because there is no active profile";
         return;
     }
-    if (QThread::currentThread() != settingsThread)
-        return (void)QMetaObject::invokeMethod(&getInstance(), "savePersonal",
-                                               Q_ARG(Profile*, profile));
-    savePersonal(profile->getName(), profile->getPasskey());
+    QMetaObject::invokeMethod(this, "savePersonal",
+                              Q_ARG(QString, loadedProfile->getName()),
+                              Q_ARG(const ToxEncrypt*, loadedProfile->getPasskey()));
 }
 
 void Settings::savePersonal(QString profileName, const ToxEncrypt* passkey)
@@ -837,6 +845,12 @@ void Settings::savePersonal(QString profileName, const ToxEncrypt* passkey)
         ps.setValue("blackList", blackList.join('\n'));
     }
     ps.endGroup();
+
+    ps.beginGroup("Version");
+    {
+        ps.setValue("settingsVersion", personalSettingsVersion);
+    }
+    ps.endGroup();
     ps.save();
 }
 
@@ -881,7 +895,7 @@ void Settings::setEnableIPv6(bool enabled)
 bool Settings::getMakeToxPortable() const
 {
     QMutexLocker locker{&bigLock};
-    return makeToxPortable;
+    return paths.isPortable();
 }
 
 void Settings::setMakeToxPortable(bool newValue)
@@ -889,17 +903,13 @@ void Settings::setMakeToxPortable(bool newValue)
     bool changed = false;
     {
         QMutexLocker locker{&bigLock};
-
-        if (newValue != makeToxPortable) {
-            QFile(paths.getSettingsDirPath() + globalSettingsFile).remove();
-            makeToxPortable = newValue;
+        auto const oldSettingsPath = paths.getSettingsDirPath() + globalSettingsFile;
+        changed = paths.setPortable(newValue);
+        if (changed) {
+            QFile(oldSettingsPath).remove();
             saveGlobal();
-
-            changed = true;
+            emit makeToxPortableChanged(newValue);
         }
-    }
-    if (changed) {
-        emit makeToxPortableChanged(newValue);
     }
 }
 
@@ -908,7 +918,7 @@ bool Settings::getAutorun() const
     QMutexLocker locker{&bigLock};
 
 #ifdef QTOX_PLATFORM_EXT
-    return Platform::getAutorun();
+    return Platform::getAutorun(*this);
 #else
     return false;
 #endif
@@ -917,14 +927,14 @@ bool Settings::getAutorun() const
 void Settings::setAutorun(bool newValue)
 {
 #ifdef QTOX_PLATFORM_EXT
-    bool autorun = Platform::getAutorun();
+    bool autorun = Platform::getAutorun(*this);
 
     if (newValue != autorun) {
-        Platform::setAutorun(newValue);
+        Platform::setAutorun(*this, newValue);
         emit autorunChanged(autorun);
     }
 #else
-    Q_UNUSED(newValue)
+    std::ignore = newValue;
 #endif
 }
 
@@ -1042,6 +1052,19 @@ void Settings::setStatusChangeNotificationEnabled(bool newValue)
 {
     if (setVal(statusChangeNotificationEnabled, newValue)) {
         emit statusChangeNotificationEnabledChanged(newValue);
+    }
+}
+
+bool Settings::getShowGroupJoinLeaveMessages() const
+{
+    QMutexLocker locker{&bigLock};
+    return showGroupJoinLeaveMessages;
+}
+
+void Settings::setShowGroupJoinLeaveMessages(bool newValue)
+{
+    if (setVal(showGroupJoinLeaveMessages, newValue)) {
+        emit showGroupJoinLeaveMessagesChanged(newValue);
     }
 }
 
@@ -1862,23 +1885,10 @@ void Settings::setCamVideoFPS(float newValue)
     }
 }
 
-QString Settings::getFriendAddress(const QString& publicKey) const
-{
-    QMutexLocker locker{&bigLock};
-    // TODO: using ToxId here is a hack
-    QByteArray key = ToxId(publicKey).getPublicKey().getByteArray();
-    auto it = friendLst.find(key);
-    if (it != friendLst.end())
-        return it->addr;
-
-    return QString();
-}
-
 void Settings::updateFriendAddress(const QString& newAddr)
 {
     QMutexLocker locker{&bigLock};
-    // TODO: using ToxId here is a hack
-    auto key = ToxId(newAddr).getPublicKey();
+    auto key = ToxPk(newAddr);
     auto& frnd = getOrInsertFriendPropRef(key);
     frnd.addr = newAddr;
 }
@@ -1936,7 +1946,7 @@ void Settings::setFriendActivity(const ToxPk& id, const QDateTime& activity)
 
 void Settings::saveFriendSettings(const ToxPk& id)
 {
-    Q_UNUSED(id)
+    std::ignore = id;
     savePersonal();
 }
 
@@ -2227,7 +2237,7 @@ void Settings::createSettingsDir()
 void Settings::sync()
 {
     if (QThread::currentThread() != settingsThread) {
-        QMetaObject::invokeMethod(&getInstance(), "sync", Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(this, "sync", Qt::BlockingQueuedConnection);
         return;
     }
 

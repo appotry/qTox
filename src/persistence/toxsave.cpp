@@ -18,17 +18,36 @@
 */
 
 #include "toxsave.h"
-#include "src/widget/gui.h"
+#include "src/persistence/settings.h"
+#include "src/widget/widget.h"
+#include "src/nexus.h"
+#include "src/ipc.h"
 #include "src/widget/tool/profileimporter.h"
 #include <QCoreApplication>
+#include <QString>
 
-bool toxSaveEventHandler(const QByteArray& eventData)
+const QString ToxSave::eventHandlerKey = QStringLiteral("save");
+
+ToxSave::ToxSave(Settings& settings_, IPC& ipc_, QWidget* parent_)
+    : settings{settings_}
+    , ipc{ipc_}
+    , parent{parent_}
+{}
+
+ToxSave::~ToxSave()
 {
+    ipc.unregisterEventHandler(eventHandlerKey);
+}
+
+bool ToxSave::toxSaveEventHandler(const QByteArray& eventData, void* userData)
+{
+    auto toxSave = static_cast<ToxSave*>(userData);
+
     if (!eventData.endsWith(".tox")) {
         return false;
     }
 
-    handleToxSave(eventData);
+    toxSave->handleToxSave(QString::fromUtf8(eventData));
     return true;
 }
 
@@ -38,8 +57,8 @@ bool toxSaveEventHandler(const QByteArray& eventData)
  * @param path Path to .tox file.
  * @return True if import success, false, otherwise.
  */
-bool handleToxSave(const QString& path)
+bool ToxSave::handleToxSave(const QString& path)
 {
-    ProfileImporter importer(GUI::getMainWidget());
+    ProfileImporter importer(settings, parent);
     return importer.importProfile(path);
 }

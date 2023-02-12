@@ -26,17 +26,22 @@
 #include "src/model/status.h"
 #include "src/persistence/profile.h"
 #include "src/widget/widget.h"
+#include "src/widget/style.h"
 #include "video/camerasource.h"
-#include "widget/gui.h"
 #include "widget/loginscreen.h"
+#include "src/widget/tool/messageboxmanager.h"
+#include "audio/audio.h"
+#include "src/ipc.h"
+
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QDesktopWidget>
 #include <QThread>
-#include <cassert>
-#include "audio/audio.h"
+
 #include <vpx/vpx_image.h>
+
+#include <cassert>
 
 #ifdef Q_OS_MAC
 #include <QActionGroup>
@@ -55,13 +60,19 @@
 
 Q_DECLARE_OPAQUE_POINTER(ToxAV*)
 
-static Nexus* nexus{nullptr};
-
-Nexus::Nexus(QObject* parent)
+Nexus::Nexus(Settings& settings_, IMessageBoxManager& messageBoxManager_,
+    CameraSource& cameraSource_, IPC& ipc_, QObject* parent)
     : QObject(parent)
     , profile{nullptr}
+    , settings{settings_}
     , widget{nullptr}
-{}
+    , cameraSource{cameraSource_}
+    , style{new Style()}
+    , messageBoxManager{messageBoxManager_}
+    , ipc{ipc_}
+{
+    QObject::connect(this, &Nexus::saveGlobal, &settings, &Settings::saveGlobal);
+}
 
 Nexus::~Nexus()
 {
@@ -104,7 +115,7 @@ void Nexus::start()
     qRegisterMetaType<ToxPk>("ToxPk");
     qRegisterMetaType<ToxId>("ToxId");
     qRegisterMetaType<ToxPk>("GroupId");
-    qRegisterMetaType<ToxPk>("ContactId");
+    qRegisterMetaType<ToxPk>("ChatId");
     qRegisterMetaType<GroupInvite>("GroupInvite");
     qRegisterMetaType<ReceiptNum>("ReceiptNum");
     qRegisterMetaType<RowId>("RowId");
@@ -158,7 +169,7 @@ int Nexus::showLogin(const QString& profileName)
     delete profile;
     profile = nullptr;
 
-    LoginScreen loginScreen{profileName};
+    LoginScreen loginScreen{settings, *style, profileName};
     connectLoginScreen(loginScreen);
 
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
@@ -184,21 +195,10 @@ void Nexus::bootstrapWithProfile(Profile* p)
     profile = p;
 
     if (profile) {
-        audioControl = std::unique_ptr<IAudioControl>(Audio::makeAudio(*settings));
+        audioControl = std::unique_ptr<IAudioControl>(Audio::makeAudio(settings));
         assert(audioControl != nullptr);
         profile->getCore().getAv()->setAudio(*audioControl);
         start();
-    }
-}
-
-void Nexus::setSettings(Settings* settings)
-{
-    if (this->settings) {
-        QObject::disconnect(this, &Nexus::saveGlobal, this->settings, &Settings::saveGlobal);
-    }
-    this->settings = settings;
-    if (this->settings) {
-        QObject::connect(this, &Nexus::saveGlobal, this->settings, &Settings::saveGlobal);
     }
 }
 
@@ -213,10 +213,10 @@ void Nexus::connectLoginScreen(const LoginScreen& loginScreen)
     QObject::connect(&loginScreen, &LoginScreen::createNewProfile, this, &Nexus::onCreateNewProfile);
     QObject::connect(&loginScreen, &LoginScreen::loadProfile, this, &Nexus::onLoadProfile);
     // LoginScreen -> Settings
-    QObject::connect(&loginScreen, &LoginScreen::autoLoginChanged, settings, &Settings::setAutoLogin);
-    QObject::connect(&loginScreen, &LoginScreen::autoLoginChanged, settings, &Settings::saveGlobal);
+    QObject::connect(&loginScreen, &LoginScreen::autoLoginChanged, &settings, &Settings::setAutoLogin);
+    QObject::connect(&loginScreen, &LoginScreen::autoLoginChanged, &settings, &Settings::saveGlobal);
     // Settings -> LoginScreen
-    QObject::connect(settings, &Settings::autoLoginChanged, &loginScreen,
+    QObject::connect(&settings, &Settings::autoLoginChanged, &loginScreen,
                      &LoginScreen::onAutoLoginChanged);
 }
 
@@ -226,17 +226,17 @@ void Nexus::showMainGUI()
     assert(profile);
 
     // Create GUI
-    widget = new Widget(*profile, *audioControl);
+    widget = new Widget(*profile, *audioControl, cameraSource, settings, *style,
+        ipc, *this);
 
     // Start GUI
     widget->init();
-    GUI::getInstance();
 
     // Zetok protection
     // There are small instants on startup during which no
     // profile is loaded but the GUI could still receive events,
     // e.g. between two modal windows. Disable the GUI to prevent that.
-    GUI::setEnabled(false);
+    widget->setEnabled(false);
 
     // Connections
     connect(profile, &Profile::selfAvatarChanged, widget, &Widget::onSelfAvatarLoaded);
@@ -250,37 +250,7 @@ void Nexus::showMainGUI()
 
     profile->startCore();
 
-    GUI::setEnabled(true);
-}
-
-/**
- * @brief Returns the singleton instance.
- */
-Nexus& Nexus::getInstance()
-{
-    if (!nexus)
-        nexus = new Nexus;
-
-    return *nexus;
-}
-
-void Nexus::destroyInstance()
-{
-    delete nexus;
-    nexus = nullptr;
-}
-
-/**
- * @brief Get core instance.
- * @return nullptr if not started, core instance otherwise.
- */
-Core* Nexus::getCore()
-{
-    Nexus& nexus = getInstance();
-    if (!nexus.profile)
-        return nullptr;
-
-    return &nexus.profile->getCore();
+    widget->setEnabled(true);
 }
 
 /**
@@ -289,7 +259,7 @@ Core* Nexus::getCore()
  */
 Profile* Nexus::getProfile()
 {
-    return getInstance().profile;
+    return profile;
 }
 
 /**
@@ -299,7 +269,8 @@ Profile* Nexus::getProfile()
  */
 void Nexus::onCreateNewProfile(const QString& name, const QString& pass)
 {
-    setProfile(Profile::createProfile(name, pass, *settings, parser));
+    setProfile(Profile::createProfile(name, pass, settings, parser, cameraSource,
+        messageBoxManager));
     parser = nullptr; // only apply cmdline proxy settings once
 }
 
@@ -308,7 +279,8 @@ void Nexus::onCreateNewProfile(const QString& name, const QString& pass)
  */
 void Nexus::onLoadProfile(const QString& name, const QString& pass)
 {
-    setProfile(Profile::loadProfile(name, pass, *settings, parser));
+    setProfile(Profile::loadProfile(name, pass, settings, parser, cameraSource,
+        messageBoxManager));
     parser = nullptr; // only apply cmdline proxy settings once
 }
 /**
@@ -328,18 +300,20 @@ void Nexus::setProfile(Profile* p)
     emit currentProfileChanged(p);
 }
 
-void Nexus::setParser(QCommandLineParser* parser)
+void Nexus::setParser(QCommandLineParser* parser_)
 {
-    this->parser = parser;
+    parser = parser_;
 }
 
-/**
- * @brief Get desktop GUI widget.
- * @return nullptr if not started, desktop widget otherwise.
- */
-Widget* Nexus::getDesktopGUI()
+void Nexus::registerIpcHandlers()
 {
-    return getInstance().widget;
+    widget->registerIpcHandlers();
+}
+
+bool Nexus::handleToxSave(const QString& path)
+{
+    assert(widget);
+    return widget->handleToxSave(path);
 }
 
 #ifdef Q_OS_MAC

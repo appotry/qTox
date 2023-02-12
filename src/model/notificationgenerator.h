@@ -32,13 +32,20 @@
 
 class NotificationGenerator : public QObject
 {
+    Q_OBJECT
+
 public:
     NotificationGenerator(
-        INotificationSettings const& notificationSettings,
+        INotificationSettings const& notificationSettings_,
         // Optional profile input to lookup avatars. Avatar lookup is not
         // currently mockable so we allow profile to be nullptr for unit
         // testing
-        Profile* profile);
+        Profile* profile_);
+    virtual ~NotificationGenerator();
+    NotificationGenerator(const NotificationGenerator&) = delete;
+    NotificationGenerator& operator=(const NotificationGenerator&) = delete;
+    NotificationGenerator(NotificationGenerator&&) = delete;
+    NotificationGenerator& operator=(NotificationGenerator&&) = delete;
 
     NotificationData friendMessageNotification(const Friend* f, const QString& message);
     NotificationData groupMessageNotification(const Group* g, const ToxPk& sender, const QString& message);

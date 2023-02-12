@@ -19,16 +19,22 @@
 
 #pragma once
 
-class ContactId;
+class ChatId;
 class GroupId;
 class ToxPk;
 
 class IDialogs
 {
 public:
-    virtual ~IDialogs() = default;
-    virtual bool hasContact(const ContactId& contactId) const = 0;
-    virtual bool isContactActive(const ContactId& contactId) const = 0;
+    IDialogs() = default;
+    virtual ~IDialogs();
+    IDialogs(const IDialogs&) = default;
+    IDialogs& operator=(const IDialogs&) = default;
+    IDialogs(IDialogs&&) = default;
+    IDialogs& operator=(IDialogs&&) = default;
+
+    virtual bool hasChat(const ChatId& chatId) const = 0;
+    virtual bool isChatActive(const ChatId& chatId) const = 0;
 
     virtual void removeFriend(const ToxPk& friendPk) = 0;
     virtual void removeGroup(const GroupId& groupId) = 0;

@@ -48,7 +48,7 @@ class CoreFile : public QObject
     Q_OBJECT
 
 public:
-    void handleAvatarOffer(uint32_t friendId, uint32_t fileId, bool accept);
+    void handleAvatarOffer(uint32_t friendId, uint32_t fileId, bool accept, uint64_t filesize);
     static CoreFilePtr makeCoreFile(Core* core, Tox* tox, CompatibleRecursiveMutex& coreLoopLock);
 
     void sendFile(uint32_t friendId, QString filename, QString filePath,
@@ -69,8 +69,6 @@ signals:
     void fileTransferAccepted(ToxFile file);
     void fileTransferCancelled(ToxFile file);
     void fileTransferFinished(ToxFile file);
-    void fileUploadFinished(const QString& path);
-    void fileDownloadFinished(const QString& path);
     void fileTransferPaused(ToxFile file);
     void fileTransferInfo(ToxFile file);
     void fileTransferRemotePausedUnpaused(ToxFile file, bool paused);
@@ -79,7 +77,7 @@ signals:
     void fileSendFailed(uint32_t friendId, const QString& fname);
 
 private:
-    CoreFile(Tox* core, CompatibleRecursiveMutex& coreLoopLock);
+    CoreFile(Tox* core_, CompatibleRecursiveMutex& coreLoopLock_);
 
     ToxFile* findFile(uint32_t friendId, uint32_t fileId);
     void addFile(uint32_t friendId, uint32_t fileId, const ToxFile& file);

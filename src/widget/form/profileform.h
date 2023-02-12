@@ -29,6 +29,9 @@ class ContentLayout;
 class CroppingLabel;
 class IProfileInfo;
 class MaskablePixmapWidget;
+class Settings;
+class Style;
+class IMessageBoxManager;
 
 namespace Ui {
 class IdentitySettings;
@@ -42,8 +45,9 @@ signals:
     void clicked();
 
 protected:
-    void mouseReleaseEvent(QMouseEvent*) final
+    void mouseReleaseEvent(QMouseEvent* event) final
     {
+        std::ignore = event;
         emit clicked();
     }
 };
@@ -52,7 +56,8 @@ class ProfileForm : public QWidget
 {
     Q_OBJECT
 public:
-    ProfileForm(IProfileInfo* profileInfo, QWidget* parent = nullptr);
+    ProfileForm(IProfileInfo* profileInfo_, Settings& settings, Style& style,
+        IMessageBoxManager& messageBoxManager, QWidget* parent = nullptr);
     ~ProfileForm();
     void show(ContentLayout* contentLayout);
     bool isShown() const;
@@ -92,4 +97,6 @@ private:
     QRWidget* qr;
     ClickableTE* toxId;
     IProfileInfo* profileInfo;
+    Settings& settings;
+    IMessageBoxManager& messageBoxManager;
 };

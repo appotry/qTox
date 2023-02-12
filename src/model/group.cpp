@@ -19,7 +19,7 @@
 
 #include "group.h"
 #include "friend.h"
-#include "src/core/contactid.h"
+#include "src/core/chatid.h"
 #include "src/core/groupid.h"
 #include "src/core/toxpk.h"
 #include "src/friendlist.h"
@@ -28,17 +28,21 @@
 
 #include <QDebug>
 
-static const int MAX_GROUP_TITLE_LENGTH = 128;
+namespace {
+const int MAX_GROUP_TITLE_LENGTH = 128;
+} // namespace
 
-Group::Group(int groupId, const GroupId persistentGroupId, const QString& name, bool isAvGroupchat,
-             const QString& selfName, ICoreGroupQuery& groupQuery, ICoreIdHandler& idHandler)
-    : groupQuery(groupQuery)
-    , idHandler(idHandler)
-    , selfName{selfName}
+Group::Group(int groupId_, const GroupId persistentGroupId, const QString& name, bool isAvGroupchat,
+             const QString& selfName_, ICoreGroupQuery& groupQuery_, ICoreIdHandler& idHandler_,
+             FriendList& friendList_)
+    : groupQuery(groupQuery_)
+    , idHandler(idHandler_)
+    , selfName{selfName_}
     , title{name}
-    , toxGroupNum(groupId)
+    , toxGroupNum(groupId_)
     , groupId{persistentGroupId}
     , avGroupchat{isAvGroupchat}
+    , friendList{friendList_}
 {
     // in groupchats, we only notify on messages containing your name <-- dumb
     // sound notifications should be on all messages, but system popup notification
@@ -79,6 +83,11 @@ QString Group::getDisplayedName() const
     return getName();
 }
 
+QString Group::getDisplayedName(const ToxPk& contact) const
+{
+    return resolveToxPk(contact);
+}
+
 void Group::regeneratePeerList()
 {
     // NOTE: there's a bit of a race here. Core emits a signal for both groupPeerlistChanged and
@@ -97,7 +106,7 @@ void Group::regeneratePeerList()
         if (pk == idHandler.getSelfPublicKey()) {
             peerDisplayNames[pk] = idHandler.getUsername();
         } else {
-            peerDisplayNames[pk] = FriendList::decideNickname(pk, peers[i]);
+            peerDisplayNames[pk] = friendList.decideNickname(pk, peers[i]);
         }
     }
     for (const auto& pk : oldPeerNames.keys()) {
@@ -122,7 +131,7 @@ void Group::regeneratePeerList()
 
 void Group::updateUsername(ToxPk pk, const QString newName)
 {
-    const QString displayName = FriendList::decideNickname(pk, newName);
+    const QString displayName = friendList.decideNickname(pk, newName);
     assert(peerDisplayNames.contains(pk));
     if (peerDisplayNames[pk] != displayName) {
         // there could be no actual change even if their username changed due to an alias being set
@@ -181,7 +190,7 @@ bool Group::getMentionedFlag() const
     return userWasMentioned;
 }
 
-QString Group::resolveToxId(const ToxPk& id) const
+QString Group::resolveToxPk(const ToxPk& id) const
 {
     auto it = peerDisplayNames.find(id);
 
@@ -200,9 +209,4 @@ void Group::setSelfName(const QString& name)
 QString Group::getSelfName() const
 {
     return selfName;
-}
-
-bool Group::useHistory() const
-{
-    return false;
 }

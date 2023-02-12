@@ -59,25 +59,32 @@ CoreExt::CoreExt(ExtensionPtr<ToxExt> toxExt_)
 
 void CoreExt::process()
 {
+    std::lock_guard<std::mutex> lock(toxext_mutex);
     toxext_iterate(toxExt.get());
 }
 
 void CoreExt::onLosslessPacket(uint32_t friendId, const uint8_t* data, size_t length)
 {
     if (is_toxext_packet(data, length)) {
+        std::lock_guard<std::mutex> lock(toxext_mutex);
         toxext_handle_lossless_custom_packet(toxExt.get(), friendId, data, length);
     }
 }
 
 CoreExt::Packet::Packet(
-    ToxExtPacketList* packetList,
-    ToxExtensionMessages* toxExtMessages,
-    uint32_t friendId,
-    PacketPassKey)
-    : toxExtMessages(toxExtMessages)
-    , packetList(packetList)
-    , friendId(friendId)
-{}
+    ToxExtPacketList* packetList_,
+    ToxExtensionMessages* toxExtMessages_,
+    uint32_t friendId_,
+    std::mutex* toxext_mutex_,
+    PacketPassKey passKey)
+    : toxext_mutex(toxext_mutex_)
+    , toxExtMessages(toxExtMessages_)
+    , packetList(packetList_)
+    , friendId(friendId_)
+{
+    std::ignore = passKey;
+    assert(toxext_mutex != nullptr);
+}
 
 std::unique_ptr<ICoreExtPacket> CoreExt::getPacket(uint32_t friendId)
 {
@@ -85,6 +92,7 @@ std::unique_ptr<ICoreExtPacket> CoreExt::getPacket(uint32_t friendId)
         toxext_packet_list_create(toxExt.get(), friendId),
         toxExtMessages.get(),
         friendId,
+        &toxext_mutex,
         PacketPassKey{}));
 }
 
@@ -130,6 +138,8 @@ uint64_t CoreExt::Packet::addExtendedMessage(QString message)
 
 bool CoreExt::Packet::send()
 {
+    std::lock_guard<std::mutex> lock(*toxext_mutex);
+
     auto ret = toxext_send(packetList);
     if (ret != TOXEXT_SUCCESS) {
         qWarning() << "Failed to send packet";
@@ -188,4 +198,3 @@ void CoreExt::onExtendedMessageNegotiation(uint32_t friendId, bool compatible, u
 
     emit coreExt->extendedMessageSupport(friendId, compatible);
 }
-

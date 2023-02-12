@@ -19,7 +19,10 @@
 
 #pragma once
 
+#include "toxpk.h"
+
 #include <QString>
+#include <vector>
 
 struct DhtServer
 {
@@ -28,8 +31,9 @@ struct DhtServer
     QString ipv4;
     QString ipv6;
     QString maintainer;
-    QString userId;
-    quint16 port;
+    ToxPk publicKey;
+    quint16 udpPort;
+    std::vector<uint16_t> tcpPorts;
 
     bool operator==(const DhtServer& other) const;
     bool operator!=(const DhtServer& other) const;

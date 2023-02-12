@@ -20,7 +20,7 @@
 #
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.7.2)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option(PLATFORM_EXTENSIONS "Enable platform specific extensions, requires extra dependencies" ON)
@@ -31,7 +31,7 @@ option(SVGZ_ICON "Compress the SVG icon of qTox" ON)
 option(ASAN "Compile with AddressSanitizer" OFF)
 option(TSAN "Compile with ThreadSanitizer" OFF)
 option(DESKTOP_NOTIFICATIONS "Use snorenotify for desktop notifications" OFF)
-option(STRICT_OPTIONS "Enable strict compile options, used by CI" OFF)
+option(STRICT_OPTIONS "Error on compile warning, used by CI" OFF)
 
 # process generated files if cmake >= 3.10
 if(POLICY CMP0071)
@@ -62,7 +62,7 @@ if(APPLE)
 endif()
 
 execute_process(
-  COMMAND brew --prefix qt5
+  COMMAND brew --prefix qt@5
   OUTPUT_VARIABLE QT_PREFIX_PATH
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -92,27 +92,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 # Hardening flags (ASLR, warnings, etc)
 set(POSITION_INDEPENDENT_CODE True)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-overflow")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-aliasing")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunknown-pragmas")
-
-# Extra-strict compile options that we don't want to subject all users to by default
-if (STRICT_OPTIONS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-endif()
-
-# avoid timestamps in binary for reproducible builds, not added until GCC 4.9
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG(-Wdate-time COMPILER_SUPPORTS_WDATE_TIME)
-if (COMPILER_SUPPORTS_WDATE_TIME)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdate-time")
-endif()
 
 if (NOT WIN32 AND NOT HAIKU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-all")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstack-protector")
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -120,8 +102,11 @@ if (UNIX AND NOT APPLE)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,relro")
 endif()
 
-include(CheckAtomic)
+add_definitions(-DQT_NO_CAST_FROM_BYTEARRAY)
+add_definitions(-DQT_NO_CAST_TO_ASCII)
+add_definitions(-DQT_RESTRICTED_CAST_FROM_ASCII)
 
+include(CheckAtomic)
 
 # Use ccache when available to speed up builds.
 if (USE_CCACHE)
@@ -156,7 +141,7 @@ qt5_wrap_ui(${PROJECT_NAME}_FORMS
   src/widget/about/aboutfriendform.ui
   src/widget/form/loadhistorydialog.ui
   src/widget/form/profileform.ui
-  src/widget/form/removefrienddialog.ui
+  src/widget/form/removechatdialog.ui
   src/widget/form/searchsettingsform.ui
   src/widget/form/setpassworddialog.ui
   src/widget/form/settings/aboutsettings.ui
@@ -174,28 +159,38 @@ if(NOT SMILEYS)
   set(SMILEYS "")
 endif()
 
+set(SMILEY_RESOURCES "")
 if(NOT "${SMILEYS}" STREQUAL "DISABLED")
-  set(${PROJECT_NAME}_RESOURCES
-        ${${PROJECT_NAME}_RESOURCES}
-        smileys/emojione.qrc)
+  set(SMILEY_RESOURCES smileys/emojione.qrc)
 
   if(NOT "${SMILEYS}" STREQUAL "MIN")
-      set(${PROJECT_NAME}_RESOURCES
-            ${${PROJECT_NAME}_RESOURCES}
+      set(SMILEY_RESOURCES
+            ${SMILEY_RESOURCES}
             smileys/smileys.qrc)
   endif()
-
 endif()
 
 set(${PROJECT_NAME}_SOURCES
+  src/appmanager.cpp
+  src/appmanager.h
+  src/friendlist.cpp
+  src/friendlist.h
+  src/grouplist.cpp
+  src/grouplist.h
+  src/ipc.cpp
+  src/ipc.h
+  src/nexus.cpp
+  src/nexus.h
   src/chatlog/chatlinecontent.cpp
   src/chatlog/chatlinecontent.h
   src/chatlog/chatlinecontentproxy.cpp
   src/chatlog/chatlinecontentproxy.h
   src/chatlog/chatline.cpp
   src/chatlog/chatline.h
-  src/chatlog/chatlog.cpp
-  src/chatlog/chatlog.h
+  src/chatlog/chatlinestorage.cpp
+  src/chatlog/chatlinestorage.h
+  src/chatlog/chatwidget.cpp
+  src/chatlog/chatwidget.h
   src/chatlog/chatmessage.cpp
   src/chatlog/chatmessage.h
   src/chatlog/content/filetransferwidget.cpp
@@ -218,8 +213,8 @@ set(${PROJECT_NAME}_SOURCES
   src/chatlog/documentcache.h
   src/chatlog/pixmapcache.cpp
   src/chatlog/pixmapcache.h
-  src/chatlog/toxfileprogress.cpp
-  src/chatlog/toxfileprogress.h
+  src/core/toxfileprogress.cpp
+  src/core/toxfileprogress.h
   src/chatlog/textformatter.cpp
   src/chatlog/textformatter.h
   src/core/coreav.cpp
@@ -232,7 +227,18 @@ set(${PROJECT_NAME}_SOURCES
   src/core/core.h
   src/core/dhtserver.cpp
   src/core/dhtserver.h
+  src/core/icoreextpacket.cpp
+  src/core/icoreextpacket.h
+  src/core/icoresettings.cpp
   src/core/icoresettings.h
+  src/core/icorefriendmessagesender.cpp
+  src/core/icorefriendmessagesender.h
+  src/core/icoregroupmessagesender.cpp
+  src/core/icoregroupmessagesender.h
+  src/core/icoregroupquery.cpp
+  src/core/icoregroupquery.h
+  src/core/icoreidhandler.cpp
+  src/core/icoreidhandler.h
   src/core/toxcall.cpp
   src/core/toxcall.h
   src/core/toxencrypt.cpp
@@ -250,35 +256,35 @@ set(${PROJECT_NAME}_SOURCES
   src/core/toxoptions.h
   src/core/toxpk.cpp
   src/core/toxpk.h
-  src/core/contactid.cpp
-  src/core/contactid.h
+  src/core/chatid.cpp
+  src/core/chatid.h
   src/core/toxstring.cpp
   src/core/toxstring.h
-  src/friendlist.cpp
-  src/friendlist.h
-  src/grouplist.cpp
-  src/grouplist.h
-  src/ipc.cpp
-  src/ipc.h
   src/model/about/aboutfriend.cpp
   src/model/about/aboutfriend.h
+  src/model/about/iaboutfriend.cpp
   src/model/about/iaboutfriend.h
   src/model/chathistory.cpp
   src/model/chathistory.h
   src/model/chatlogitem.cpp
   src/model/chatlogitem.h
+  src/model/chatroom/chatroom.cpp
   src/model/chatroom/chatroom.h
   src/model/chatroom/friendchatroom.cpp
   src/model/chatroom/friendchatroom.h
   src/model/chatroom/groupchatroom.cpp
   src/model/chatroom/groupchatroom.h
-  src/model/contact.cpp
-  src/model/contact.h
+  src/model/chat.cpp
+  src/model/chat.h
+  src/model/dialogs/idialogs.cpp
   src/model/dialogs/idialogs.h
+  src/model/dialogs/idialogsmanager.h
+  src/model/dialogs/idialogsmanager.cpp
   src/model/exiftransform.cpp
   src/model/exiftransform.h
   src/model/friendlist/friendlistmanager.cpp
   src/model/friendlist/friendlistmanager.h
+  src/model/friendlist/ifriendlistitem.cpp
   src/model/friendlist/ifriendlistitem.h
   src/model/friendmessagedispatcher.cpp
   src/model/friendmessagedispatcher.h
@@ -290,6 +296,7 @@ set(${PROJECT_NAME}_SOURCES
   src/model/groupmessagedispatcher.h
   src/model/group.cpp
   src/model/group.h
+  src/model/ibootstraplistgenerator.cpp
   src/model/ibootstraplistgenerator.h
   src/model/ichatlog.h
   src/model/imessagedispatcher.h
@@ -297,6 +304,7 @@ set(${PROJECT_NAME}_SOURCES
   src/model/message.h
   src/model/notificationgenerator.cpp
   src/model/notificationgenerator.h
+  src/model/profile/iprofileinfo.cpp
   src/model/profile/iprofileinfo.h
   src/model/profile/profileinfo.cpp
   src/model/profile/profileinfo.h
@@ -311,13 +319,22 @@ set(${PROJECT_NAME}_SOURCES
   src/net/avatarbroadcaster.h
   src/net/toxuri.cpp
   src/net/toxuri.h
-  src/nexus.cpp
-  src/nexus.h
   src/persistence/db/rawdatabase.cpp
   src/persistence/db/rawdatabase.h
+  src/persistence/db/upgrades/dbupgrader.cpp
+  src/persistence/db/upgrades/dbupgrader.h
+  src/persistence/db/upgrades/dbto11.h
+  src/persistence/db/upgrades/dbto11.cpp
   src/persistence/history.cpp
   src/persistence/history.h
+  src/persistence/ifriendsettings.cpp
   src/persistence/ifriendsettings.h
+  src/persistence/igroupsettings.cpp
+  src/persistence/igroupsettings.h
+  src/persistence/inotificationsettings.cpp
+  src/persistence/inotificationsettings.h
+  src/persistence/ismileysettings.cpp
+  src/persistence/ismileysettings.h
   src/persistence/offlinemsgengine.cpp
   src/persistence/offlinemsgengine.h
   src/persistence/paths.cpp
@@ -332,6 +349,10 @@ set(${PROJECT_NAME}_SOURCES
   src/persistence/settings.h
   src/persistence/settingsserializer.cpp
   src/persistence/settingsserializer.h
+  src/persistence/globalsettingsupgrader.cpp
+  src/persistence/globalsettingsupgrader.h
+  src/persistence/personalsettingsupgrader.cpp
+  src/persistence/personalsettingsupgrader.h
   src/persistence/smileypack.cpp
   src/persistence/smileypack.h
   src/persistence/toxsave.cpp
@@ -342,6 +363,7 @@ set(${PROJECT_NAME}_SOURCES
   src/video/camerasource.h
   src/video/corevideosource.cpp
   src/video/corevideosource.h
+  src/video/ivideosettings.cpp
   src/video/ivideosettings.h
   src/video/netcamview.cpp
   src/video/netcamview.h
@@ -373,6 +395,8 @@ set(${PROJECT_NAME}_SOURCES
   src/widget/extensionstatus.h
   src/widget/flowlayout.cpp
   src/widget/flowlayout.h
+  src/widget/imagepreviewwidget.h
+  src/widget/imagepreviewwidget.cpp
   src/widget/searchform.cpp
   src/widget/searchform.h
   src/widget/searchtypes.h
@@ -432,8 +456,6 @@ set(${PROJECT_NAME}_SOURCES
   src/widget/genericchatroomwidget.h
   src/widget/groupwidget.cpp
   src/widget/groupwidget.h
-  src/widget/gui.cpp
-  src/widget/gui.h
   src/widget/loginscreen.cpp
   src/widget/loginscreen.h
   src/widget/maskablepixmapwidget.cpp
@@ -454,6 +476,10 @@ set(${PROJECT_NAME}_SOURCES
   src/widget/tool/activatedialog.h
   src/widget/tool/adjustingscrollarea.cpp
   src/widget/tool/adjustingscrollarea.h
+  src/widget/tool/imessageboxmanager.h
+  src/widget/tool/imessageboxmanager.cpp
+  src/widget/tool/messageboxmanager.cpp
+  src/widget/tool/messageboxmanager.h
   src/widget/tool/callconfirmwidget.cpp
   src/widget/tool/callconfirmwidget.h
   src/widget/tool/chattextedit.cpp
@@ -470,8 +496,8 @@ set(${PROJECT_NAME}_SOURCES
   src/widget/tool/profileimporter.h
   src/widget/tool/recursivesignalblocker.cpp
   src/widget/tool/recursivesignalblocker.h
-  src/widget/tool/removefrienddialog.cpp
-  src/widget/tool/removefrienddialog.h
+  src/widget/tool/removechatdialog.cpp
+  src/widget/tool/removechatdialog.h
   src/widget/tool/screengrabberchooserrectitem.cpp
   src/widget/tool/screengrabberchooserrectitem.h
   src/widget/tool/screengrabberoverlayitem.cpp
@@ -540,17 +566,6 @@ endif()
 add_definitions(-DQT_MESSAGELOGCONTEXT=1)
 
 if(AVFOUNDATION_FOUND)
-  # used for AVFoundation compile time deprecation check
-  execute_process(
-    COMMAND sw_vers -productVersion
-    OUTPUT_VARIABLE MACOS_VER
-  )
-  string(REPLACE "." ";" VERSION_LIST ${MACOS_VER})
-  list(GET VERSION_LIST 0 MACOS_VERSION_MAJOR)
-  list(GET VERSION_LIST 1 MACOS_VERSION_MINOR)
-  add_definitions(-DMACOS_VERSION_MAJOR=${MACOS_VERSION_MAJOR})
-  add_definitions(-DMACOS_VERSION_MINOR=${MACOS_VERSION_MINOR})
-
   set(${PROJECT_NAME}_SOURCES ${${PROJECT_NAME}_SOURCES}
     src/platform/camera/avfoundation.mm
     src/platform/camera/avfoundation.h)
@@ -608,6 +623,7 @@ link_libraries(coverage_config)
 add_subdirectory(util)
 add_subdirectory(audio)
 add_subdirectory(translations)
+add_subdirectory(cmake/warnings)
 
 add_library(${PROJECT_NAME}_static
   STATIC
@@ -618,6 +634,7 @@ target_link_libraries(${PROJECT_NAME}_static
   ${ALL_LIBRARIES}
   coverage_config)
 
+target_link_libraries(${PROJECT_NAME}_static qtox::warnings)
 target_link_libraries(${PROJECT_NAME}_static util_library)
 target_link_libraries(${PROJECT_NAME}_static audio_library)
 target_link_libraries(${PROJECT_NAME}_static translations_library)
@@ -626,6 +643,7 @@ add_executable(${PROJECT_NAME}
   WIN32
   MACOSX_BUNDLE
   ${${PROJECT_NAME}_RESOURCES}
+  ${SMILEY_RESOURCES}
   src/main.cpp)
 target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}_static

@@ -37,12 +37,13 @@ class CameraSource;
 class CoreAV;
 class IVideoSettings;
 class VideoSurface;
+class Style;
 class AVForm : public GenericForm, private Ui::AVForm
 {
     Q_OBJECT
 public:
-    AVForm(IAudioControl& audio, CoreAV* coreAV, CameraSource& camera,
-           IAudioSettings* audioSettings, IVideoSettings* videoSettings);
+    AVForm(IAudioControl& audio_, CoreAV* coreAV_, CameraSource& camera_,
+           IAudioSettings* audioSettings_, IVideoSettings* videoSettings_, Style& style);
     ~AVForm() override;
     QString getFormName() final
     {
@@ -81,7 +82,7 @@ private slots:
     void on_videoModescomboBox_currentIndexChanged(int index);
 
     void rescanDevices();
-    void setVolume(float value);
+    void setVolume(qreal value);
 
 protected:
     void updateVideoModes(int curIndex);

@@ -27,13 +27,16 @@
 #include <QSet>
 
 class Settings;
+class FriendList;
+class GroupList;
 
 class ChatHistory : public IChatLog
 {
     Q_OBJECT
 public:
-    ChatHistory(Friend& f_, History* history_, const ICoreIdHandler& coreIdHandler,
-                const Settings& settings, IMessageDispatcher& messageDispatcher);
+    ChatHistory(Chat& chat_, History* history_, const ICoreIdHandler& coreIdHandler_,
+                const Settings& settings_, IMessageDispatcher& messageDispatcher,
+                FriendList& friendList, GroupList& groupList);
     const ChatLogItem& at(ChatLogIdx idx) const override;
     SearchResult searchForward(SearchPos startIdx, const QString& phrase,
                                const ParameterSearch& parameter) const override;
@@ -42,11 +45,13 @@ public:
     ChatLogIdx getFirstIdx() const override;
     ChatLogIdx getNextIdx() const override;
     std::vector<DateChatLogIdxPair> getDateIdxs(const QDate& startDate, size_t maxDates) const override;
+    void addSystemMessage(const SystemMessage& message) override;
 
 public slots:
     void onFileUpdated(const ToxPk& sender, const ToxFile& file);
     void onFileTransferRemotePausedUnpaused(const ToxPk& sender, const ToxFile& file, bool paused);
     void onFileTransferBrokenUnbroken(const ToxPk& sender, const ToxFile& file, bool broken);
+
 
 private slots:
     void onMessageReceived(const ToxPk& sender, const Message& message);
@@ -64,7 +69,7 @@ private:
     bool canUseHistory() const;
     ChatLogIdx getInitialChatLogIdx() const;
 
-    Friend& f;
+    Chat& chat;
     History* history;
     const Settings& settings;
     const ICoreIdHandler& coreIdHandler;

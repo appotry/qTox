@@ -54,16 +54,22 @@ enum class updateIndex
 /**
  * @brief Constructor of AboutForm.
  */
-AboutForm::AboutForm(UpdateCheck* updateCheck)
-    : GenericForm(QPixmap(":/img/settings/general.png"))
+AboutForm::AboutForm(UpdateCheck* updateCheck_, Style& style_)
+    : GenericForm(QPixmap(":/img/settings/general.png"), style_)
     , bodyUI(new Ui::AboutSettings)
     , progressTimer(new QTimer(this))
-    , updateCheck(updateCheck)
+    , updateCheck(updateCheck_)
+    , style{style_}
 {
     bodyUI->setupUi(this);
 
+#if !UPDATE_CHECK_ENABLED
+    bodyUI->updateStack->setVisible(false);
+#endif
     bodyUI->unstableVersion->setVisible(false);
-    connect(updateCheck, &UpdateCheck::versionIsUnstable, this, &AboutForm::onUnstableVersion);
+#if UPDATE_CHECK_ENABLED
+    connect(updateCheck_, &UpdateCheck::versionIsUnstable, this, &AboutForm::onUnstableVersion);
+#endif
 
     // block all child signals during initialization
     const RecursiveSignalBlocker signalBlocker(this);
@@ -151,7 +157,7 @@ void AboutForm::replaceVersions()
                                "Replaces `%2` in the `A list of all known…`"))));
 
     bodyUI->clickToReport->setText(
-        createLink("https://github.com/qTox/qTox/issues/new?body=" + QUrl(issueBody).toEncoded(),
+        createLink("https://github.com/qTox/qTox/issues/new?body=" + QString::fromUtf8(QUrl(issueBody).toEncoded()),
                    QString("<b>%1</b>").arg(tr("Click here to report a bug."))));
 
 
@@ -169,6 +175,7 @@ void AboutForm::replaceVersions()
 
 void AboutForm::onUpdateAvailable(QString latestVersion, QUrl link)
 {
+    std::ignore = latestVersion;
     QObject::disconnect(linkConnection);
     linkConnection = connect(bodyUI->updateAvailableButton, &QPushButton::clicked,
                              [link]() { QDesktopServices::openUrl(link); });
@@ -192,6 +199,7 @@ void AboutForm::reloadTheme()
 
 void AboutForm::onUnstableVersion()
 {
+    bodyUI->updateStack->hide();
     bodyUI->unstableVersion->setVisible(true);
 }
 
@@ -205,7 +213,7 @@ QString AboutForm::createLink(QString path, QString text) const
 {
     return QString::fromUtf8(
                "<a href=\"%1\" style=\"text-decoration: underline; color:%2;\">%3</a>")
-        .arg(path, Style::getColor(Style::Link).name(), text);
+        .arg(path, style.getColor(Style::ColorPalette::Link).name(), text);
 }
 
 AboutForm::~AboutForm()

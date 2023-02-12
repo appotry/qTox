@@ -52,6 +52,7 @@ class GroupInvite;
 class Profile;
 class Core;
 class IBootstrapListGenerator;
+struct DhtServer;
 
 using ToxCorePtr = std::unique_ptr<Core>;
 
@@ -71,7 +72,7 @@ public:
         ERROR_ALLOC
     };
 
-    static ToxCorePtr makeToxCore(const QByteArray& savedata, const ICoreSettings* const settings,
+    static ToxCorePtr makeToxCore(const QByteArray& savedata, const ICoreSettings& settings,
                                   IBootstrapListGenerator& bootstrapNodes, ToxCoreErrors* err = nullptr);
     const CoreAV* getAv() const;
     CoreAV* getAv();
@@ -108,9 +109,9 @@ public:
     QString getStatusMessage() const;
     ToxId getSelfId() const override;
     ToxPk getSelfPublicKey() const override;
-    QPair<QByteArray, QByteArray> getKeypair() const;
 
-    void sendFile(uint32_t friendId, QString filename, QString filePath, long long filesize);
+    QByteArray getSelfDhtId() const;
+    int getSelfUdpPort() const;
 
 public slots:
     void start();
@@ -118,7 +119,7 @@ public slots:
     QByteArray getToxSaveData();
 
     void acceptFriendRequest(const ToxPk& friendPk);
-    void requestFriendship(const ToxId& friendAddress, const QString& message);
+    void requestFriendship(const ToxId& friendId, const QString& message);
     void groupInviteFriend(uint32_t friendId, int groupId);
     int createGroup(uint8_t type = TOX_CONFERENCE_TYPE_AV);
 
@@ -165,7 +166,7 @@ signals:
      * @deprecated prefer signals using ToxPk
      */
 
-    void fileAvatarOfferReceived(uint32_t friendId, uint32_t fileId, const QByteArray& avatarHash);
+    void fileAvatarOfferReceived(uint32_t friendId, uint32_t fileId, const QByteArray& avatarHash, uint64_t filesize);
 
     void friendMessageReceived(uint32_t friendId, const QString& message, bool isAction);
     void friendAdded(uint32_t friendId, const ToxPk& friendPk);
@@ -195,9 +196,9 @@ signals:
     void failedToRemoveFriend(uint32_t friendId);
 
 private:
-    Core(QThread* coreThread, IBootstrapListGenerator& _bootstrapNodes);
+    Core(QThread* coreThread_, IBootstrapListGenerator& bootstrapListGenerator_, const ICoreSettings& settings_);
 
-    static void onFriendRequest(Tox* tox, const uint8_t* cUserId, const uint8_t* cMessage,
+    static void onFriendRequest(Tox* tox, const uint8_t* cFriendPk, const uint8_t* cMessage,
                                 size_t cMessageSize, void* core);
     static void onFriendMessage(Tox* tox, uint32_t friendId, Tox_Message_Type type,
                                 const uint8_t* cMessage, size_t cMessageSize, void* core);
@@ -214,8 +215,8 @@ private:
                               const uint8_t* cookie, size_t length, void* vCore);
     static void onGroupMessage(Tox* tox, uint32_t groupId, uint32_t peerId, Tox_Message_Type type,
                                const uint8_t* cMessage, size_t length, void* vCore);
-    static void onGroupPeerListChange(Tox*, uint32_t groupId, void* core);
-    static void onGroupPeerNameChange(Tox*, uint32_t groupId, uint32_t peerId, const uint8_t* name,
+    static void onGroupPeerListChange(Tox* tox, uint32_t groupId, void* core);
+    static void onGroupPeerNameChange(Tox* tox, uint32_t groupId, uint32_t peerId, const uint8_t* name,
                                       size_t length, void* core);
     static void onGroupTitleChange(Tox* tox, uint32_t groupId, uint32_t peerId,
                                    const uint8_t* cTitle, size_t length, void* vCore);
@@ -245,11 +246,19 @@ private slots:
 private:
     struct ToxDeleter
     {
-        void operator()(Tox* tox)
+        void operator()(Tox* tox_)
         {
-            tox_kill(tox);
+            tox_kill(tox_);
         }
     };
+    /* Using the now commented out statements in checkConnection(), I watched how
+    * many ticks disconnects-after-initial-connect lasted. Out of roughly 15 trials,
+    * 5 disconnected; 4 were DCd for less than 20 ticks, while the 5th was ~50 ticks.
+    * So I set the tolerance here at 25, and initial DCs should be very rare now.
+    * This should be able to go to 50 or 100 without affecting legitimate disconnects'
+    * downtime, but lets be conservative for now. Edit: now ~~40~~ 30.
+    */
+    #define CORE_DISCONNECT_TOLERANCE 30
 
     using ToxPtr = std::unique_ptr<Tox, ToxDeleter>;
     ToxPtr tox;
@@ -262,5 +271,8 @@ private:
     mutable CompatibleRecursiveMutex coreLoopLock;
 
     std::unique_ptr<QThread> coreThread;
-    IBootstrapListGenerator& bootstrapNodes;
+    const IBootstrapListGenerator& bootstrapListGenerator;
+    const ICoreSettings& settings;
+    bool isConnected = false;
+    int tolerance = CORE_DISCONNECT_TOLERANCE;
 };

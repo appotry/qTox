@@ -23,29 +23,33 @@
 
 #include <QLinearGradient>
 #include <QPixmap>
+#include <QTimer>
 
-class QTimer;
+class Settings;
+class Style;
 
 class NotificationIcon : public ChatLineContent
 {
     Q_OBJECT
 public:
-    explicit NotificationIcon(QSize size);
+    NotificationIcon(Settings& settings, Style& style, QSize size);
 
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                        QWidget* widget) override;
-    void setWidth(qreal width) override;
+    void setWidth(float width) override;
     qreal getAscent() const override;
 
 private slots:
     void updateGradient();
 
 private:
+    static constexpr int framerate = 30; // 30Hz
+
     QSize size;
     QPixmap pmap;
     QLinearGradient grad;
-    QTimer* updateTimer = nullptr;
+    QTimer updateTimer;
 
     qreal dotWidth = 0.2;
     qreal alpha = 0.0;

@@ -58,8 +58,8 @@ GroupMessageDispatcher::sendMessage(bool isAction, QString const& content)
         // toxcore to send it back to us to indicate a completed message, but
         // this isn't necessarily the design of toxcore and associating the
         // received message back would be difficult.
-        emit this->messageSent(messageId, message);
-        emit this->messageComplete(messageId);
+        emit messageSent(messageId, message);
+        emit messageComplete(messageId);
     }
 
     return std::make_pair(firstMessageId, lastMessageId);
@@ -68,11 +68,12 @@ GroupMessageDispatcher::sendMessage(bool isAction, QString const& content)
 std::pair<DispatchedMessageId, DispatchedMessageId>
 GroupMessageDispatcher::sendExtendedMessage(const QString& content, ExtensionSet extensions)
 {
+    std::ignore = extensions;
     // Stub this api to immediately fail
     auto messageId = nextMessageId++;
     auto messages = processor.processOutgoingMessage(false, content, ExtensionSet());
-    emit this->messageSent(messageId, messages[0]);
-    emit this->messageBroken(messageId, BrokenMessageReason::unsupportedExtensions);
+    emit messageSent(messageId, messages[0]);
+    emit messageBroken(messageId, BrokenMessageReason::unsupportedExtensions);
     return {messageId, messageId};
 }
 

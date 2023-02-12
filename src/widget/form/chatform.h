@@ -41,18 +41,31 @@ class OfflineMsgEngine;
 class QPixmap;
 class QHideEvent;
 class QMoveEvent;
+class ImagePreviewButton;
+class DocumentCache;
+class SmileyPack;
+class Settings;
+class Style;
+class Profile;
+class IMessageBoxManager;
+class ContentDialogManager;
+class FriendList;
+class GroupList;
 
 class ChatForm : public GenericChatForm
 {
     Q_OBJECT
 public:
-    ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog, IMessageDispatcher& messageDispatcher);
+    ChatForm(Profile& profile, Friend* chatFriend, IChatLog& chatLog_,
+        IMessageDispatcher& messageDispatcher_, DocumentCache& documentCache, SmileyPack& smileyPack,
+        CameraSource& cameraSource, Settings& settings, Style& style, IMessageBoxManager& messageBoxManager,
+        ContentDialogManager& contentDialogManager, FriendList& friendList, GroupList& groupList);
     ~ChatForm() override;
     void setStatusMessage(const QString& newMessage);
 
-    void setFriendTyping(bool isTyping);
+    void setFriendTyping(bool isTyping_);
 
-    void show(ContentLayout* contentLayout) final;
+    void show(ContentLayout* contentLayout_) final;
 
     static const QString ACTION_PREFIX;
 
@@ -92,11 +105,13 @@ private slots:
     void onVolMuteToggle();
 
     void onFriendStatusChanged(const ToxPk& friendPk, Status::Status status);
-    void onFriendTypingChanged(quint32 friendId, bool isTyping);
+    void onFriendTypingChanged(quint32 friendId, bool isTyping_);
     void onFriendNameChanged(const QString& name);
     void onStatusMessage(const QString& message);
     void onUpdateTime();
-    void sendImage(const QPixmap& pixmap);
+    void previewImage(const QPixmap& pixmap);
+    void cancelImagePreview();
+    void sendImageFromPreview();
     void doScreenshot();
     void onCopyStatusMessage();
 
@@ -115,7 +130,6 @@ private:
 
 protected:
     std::unique_ptr<NetCamView> createNetcam();
-    void insertChatMessage(ChatMessage::Ptr msg) final;
     void dragEnterEvent(QDragEnterEvent* ev) final;
     void dropEvent(QDropEvent* ev) final;
     void hideEvent(QHideEvent* event) final;
@@ -131,7 +145,14 @@ private:
     QTimer typingTimer;
     QElapsedTimer timeElapsed;
     QAction* copyStatusAction;
+    QPixmap imagePreviewSource;
+    ImagePreviewButton* imagePreview;
     bool isTyping;
     bool lastCallIsVideo;
     std::unique_ptr<NetCamView> netcam;
+    CameraSource& cameraSource;
+    Settings& settings;
+    Style& style;
+    ContentDialogManager& contentDialogManager;
+    Profile& profile;
 };

@@ -25,9 +25,9 @@ FriendMessageDispatcher::FriendMessageDispatcher(Friend& f_, MessageProcessor pr
                                                  ICoreFriendMessageSender& messageSender_,
                                                  ICoreExtPacketAllocator& coreExtPacketAllocator_)
     : f(f_)
+    , coreExtPacketAllocator(coreExtPacketAllocator_)
     , messageSender(messageSender_)
     , processor(std::move(processor_))
-    , coreExtPacketAllocator(coreExtPacketAllocator_)
 {
     connect(&f, &Friend::onlineOfflineChanged, this, &FriendMessageDispatcher::onFriendOnlineOfflineChanged);
 }
@@ -47,7 +47,7 @@ FriendMessageDispatcher::sendMessage(bool isAction, const QString& content)
         auto onOfflineMsgComplete = getCompletionFn(messageId);
         sendProcessedMessage(message, onOfflineMsgComplete);
 
-        emit this->messageSent(messageId, message);
+        emit messageSent(messageId, message);
     }
     return std::make_pair(firstId, lastId);
 }
@@ -68,7 +68,7 @@ FriendMessageDispatcher::sendExtendedMessage(const QString& content, ExtensionSe
         auto onOfflineMsgComplete = getCompletionFn(messageId);
         sendProcessedMessage(message, onOfflineMsgComplete);
 
-        emit this->messageSent(messageId, message);
+        emit messageSent(messageId, message);
     }
     return std::make_pair(firstId, lastId);
 }
@@ -80,7 +80,7 @@ FriendMessageDispatcher::sendExtendedMessage(const QString& content, ExtensionSe
  */
 void FriendMessageDispatcher::onMessageReceived(bool isAction, const QString& content)
 {
-    emit this->messageReceived(f.getPublicKey(), processor.processIncomingCoreMessage(isAction, content));
+    emit messageReceived(f.getPublicKey(), processor.processIncomingCoreMessage(isAction, content));
 }
 
 /**
@@ -95,7 +95,7 @@ void FriendMessageDispatcher::onReceiptReceived(ReceiptNum receipt)
 void FriendMessageDispatcher::onExtMessageReceived(const QString& content)
 {
     auto message = processor.processIncomingExtMessage(content);
-    emit this->messageReceived(f.getPublicKey(), message);
+    emit messageReceived(f.getPublicKey(), message);
 }
 
 void FriendMessageDispatcher::onExtReceiptReceived(uint64_t receiptId)
@@ -107,8 +107,9 @@ void FriendMessageDispatcher::onExtReceiptReceived(uint64_t receiptId)
  * @brief Handles status change for friend
  * @note Parameters just to fit slot api
  */
-void FriendMessageDispatcher::onFriendOnlineOfflineChanged(const ToxPk&, bool isOnline)
+void FriendMessageDispatcher::onFriendOnlineOfflineChanged(const ToxPk& friendPk, bool isOnline)
 {
+    std::ignore = friendPk;
     if (isOnline) {
         auto messagesToResend = offlineMsgEngine.removeAllMessages();
         for (auto const& message : messagesToResend) {
@@ -191,11 +192,11 @@ OfflineMsgEngine::CompletionFn FriendMessageDispatcher::getCompletionFn(Dispatch
 {
     return [this, messageId] (bool success) {
         if (success) {
-            emit this->messageComplete(messageId);
+            emit messageComplete(messageId);
         } else {
             // For now we know the only reason we can fail after giving to the
             // offline message engine is due to a reduced extension set
-            emit this->messageBroken(messageId, BrokenMessageReason::unsupportedExtensions);
+            emit messageBroken(messageId, BrokenMessageReason::unsupportedExtensions);
         }
     };
 }

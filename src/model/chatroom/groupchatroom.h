@@ -27,14 +27,16 @@ class Core;
 class IDialogsManager;
 class Group;
 class ToxPk;
+class FriendList;
 
 class GroupChatroom : public QObject, public Chatroom
 {
     Q_OBJECT
 public:
-    GroupChatroom(Group* group, IDialogsManager* dialogsManager, Core& _core);
+    GroupChatroom(Group* group_, IDialogsManager* dialogsManager_, Core& core_,
+        FriendList& friendList);
 
-    Contact* getContact() override;
+    Chat* getChat() override;
 
     Group* getGroup();
 
@@ -52,4 +54,5 @@ private:
     Group* group{nullptr};
     IDialogsManager* dialogsManager{nullptr};
     Core& core;
+    FriendList& friendList;
 };

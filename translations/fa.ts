@@ -586,6 +586,57 @@ which may lead to problems with video calls.</source>
     </message>
 </context>
 <context>
+    <name>AppManager</name>
+    <message>
+        <source>Tox URI to parse</source>
+        <translation>آدرس (URI ) Tox به جهت پردازش</translation>
+    </message>
+    <message>
+        <source>Starts new instance and loads specified profile.</source>
+        <translation>یک اجرای جدید از برنامه را ضمن بارگذاری پروفایل انتخاب شده ایجاد خواهد کرد.</translation>
+    </message>
+    <message>
+        <source>profile</source>
+        <translation>پروفایل</translation>
+    </message>
+    <message>
+        <source>Starts new instance and opens the login screen.</source>
+        <translation>یک اجرای جدید را آغاز خواهد کرد و صفحه ورود را نشان خواهد داد.</translation>
+    </message>
+    <message>
+        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>on/off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets proxy settings. Default is NONE.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation type="unfinished">خطا</translation>
+    </message>
+    <message>
+        <source>Failed to load profile automatically.</source>
+        <translation>بارگذاری خودکار نمایه موفق نبود.</translation>
+    </message>
+</context>
+<context>
     <name>ChatForm</name>
     <message>
         <source>Send a file</source>
@@ -604,14 +655,6 @@ which may lead to problems with video calls.</source>
         <translation>ایده بدی است</translation>
     </message>
     <message>
-        <source>%1 calling</source>
-        <translation>%1 در حال تماس</translation>
-    </message>
-    <message>
-        <source>Calling %1</source>
-        <translation>درحال تماس گرفتن با %1</translation>
-    </message>
-    <message>
         <source>Failed to open temporary file</source>
         <comment>Temporary file for screenshot</comment>
         <translation>باز کردن فایل موقت، موفق نبود</translation>
@@ -620,10 +663,6 @@ which may lead to problems with video calls.</source>
         <source>qTox wasn&apos;t able to save the screenshot</source>
         <translatorcomment>laut Duden ist Screenshot schon deutsch</translatorcomment>
         <translation>qTox نتوانست عکس نماگرفت را ذخیره کند</translation>
-    </message>
-    <message>
-        <source>Call with %1 ended. %2</source>
-        <translation>پایان تماس با %1. %2</translation>
     </message>
     <message>
         <source>Call duration: </source>
@@ -636,15 +675,6 @@ which may lead to problems with video calls.</source>
     <message>
         <source>You&apos;re trying to send a sequential file, which is not going to work!</source>
         <translation>شما در تلاش برای ارسال یک فایل سلسله مراتبی هستید که، که امکان پذیر نیست!</translation>
-    </message>
-    <message>
-        <source>%1 is now %2</source>
-        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
-        <translation>%1 الان %2</translation>
-    </message>
-    <message>
-        <source>Call with %1 ended unexpectedly. %2</source>
-        <translation>تماس با %1 ناگهانی و غیر منتظره تموم شد. %2</translation>
     </message>
     <message>
         <source>Filename contained illegal characters</source>
@@ -724,29 +754,29 @@ so you can save the file on Windows.</source>
     </message>
 </context>
 <context>
-    <name>ChatLog</name>
+    <name>ChatTextEdit</name>
     <message>
-        <source>Copy</source>
-        <translation>کپی</translation>
+        <source>Type your message here...</source>
+        <translation>پیام خود را اینجا بنویسید...</translation>
     </message>
-    <message>
-        <source>Select all</source>
-        <translation>همه را انتخاب کن</translation>
-    </message>
+</context>
+<context>
+    <name>ChatWidget</name>
     <message>
         <source>pending</source>
-        <translation>در صف انتظار</translation>
+        <translation type="unfinished">در صف انتظار</translation>
     </message>
     <message>
         <source>%1 is typing</source>
         <translation type="unfinished">%1 در حال نوشتن است</translation>
     </message>
-</context>
-<context>
-    <name>ChatTextEdit</name>
     <message>
-        <source>Type your message here...</source>
-        <translation>پیام خود را اینجا بنویسید...</translation>
+        <source>Copy</source>
+        <translation type="unfinished">کپی</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation type="unfinished">همه را انتخاب کن</translation>
     </message>
 </context>
 <context>
@@ -1169,6 +1199,10 @@ instead of closing entirely.</source>
         <comment>autoaccept cb tooltip</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Add a chat message when a user joins or leaves a group</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GenericChatForm</name>
@@ -1195,10 +1229,6 @@ instead of closing entirely.</source>
     <message>
         <source>Clear displayed messages</source>
         <translation>پاک کردن پیام های نشان داده شده</translation>
-    </message>
-    <message>
-        <source>Cleared</source>
-        <translation>پاک شد</translation>
     </message>
     <message>
         <source>Quote selected text</source>
@@ -1235,22 +1265,6 @@ instead of closing entirely.</source>
 </context>
 <context>
     <name>GroupChatForm</name>
-    <message>
-        <source>%1 has set the title to %2</source>
-        <translation>%1 عنوان را به %2 تغییر داد</translation>
-    </message>
-    <message>
-        <source>%1 has joined the group</source>
-        <translation>%1 به گروه پیوست</translation>
-    </message>
-    <message>
-        <source>%1 is now known as %2</source>
-        <translation>%1 اکنون با عنوان %2 شناخته می‌شود</translation>
-    </message>
-    <message>
-        <source>%1 has left the group</source>
-        <translation>%1 گروه را ترک کرد</translation>
-    </message>
     <message numerus="yes">
         <source>%n user(s) in chat</source>
         <comment>Number of users in chat</comment>
@@ -1487,31 +1501,11 @@ Share it with your friends to begin chatting.</source>
 <context>
     <name>LoadHistoryDialog</name>
     <message>
-        <source>Load history</source>
-        <translation>بارگذاری سابقه</translation>
-    </message>
-    <message>
-        <source>from</source>
-        <translation>از</translation>
-    </message>
-    <message>
-        <source>to</source>
-        <translation>به</translation>
-    </message>
-    <message>
-        <source>(about 100 messages are loaded)</source>
-        <translation>(حدود 100 پیام بار‌گذاری شده است)</translation>
-    </message>
-    <message>
-        <source>Select a date</source>
-        <translation>تاریخی را انتخاب کنید</translation>
-    </message>
-    <message>
         <source>Load history dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select date dialog</source>
+        <source>Load history from:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1764,6 +1758,19 @@ Please make sure to enter the same password twice.</source>
     </message>
 </context>
 <context>
+    <name>MessageBoxManager</name>
+    <message>
+        <source>Executable file</source>
+        <comment>popup title</comment>
+        <translation type="unfinished">فایل اجرایی</translation>
+    </message>
+    <message>
+        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
+        <comment>popup text</comment>
+        <translation type="unfinished">شما از qTox خواسته اید که یک فایل اجرایی را باز کند. فایل های اجرایی میتوانند به شکل بالقوه صدمه جدی به سیستم شما بزنند. آیا اطمینان دارید که میخواهید این فایل را اجرا کنید؟</translation>
+    </message>
+</context>
+<context>
     <name>NetCamView</name>
     <message>
         <source>Tox video</source>
@@ -1783,11 +1790,11 @@ Please make sure to enter the same password twice.</source>
     </message>
     <message>
         <source>Mute microphone</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">میکروفن را خاموش کن</translation>
     </message>
     <message>
         <source>End video call</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">پایان تماس تصویری</translation>
     </message>
     <message>
         <source>Exit full screen</source>
@@ -2261,18 +2268,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
 <context>
     <name>QObject</name>
     <message>
-        <source>Tox URI to parse</source>
-        <translation>آدرس (URI ) Tox به جهت پردازش</translation>
-    </message>
-    <message>
-        <source>Starts new instance and loads specified profile.</source>
-        <translation>یک اجرای جدید از برنامه را ضمن بارگذاری پروفایل انتخاب شده ایجاد خواهد کرد.</translation>
-    </message>
-    <message>
-        <source>profile</source>
-        <translation>پروفایل</translation>
-    </message>
-    <message>
         <source>Default</source>
         <translation>پیش فرض</translation>
     </message>
@@ -2320,10 +2315,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation>امکان بازکردن لاگ های چت شما برای qTox وجود نداشت، این امکان غیر فعال میشود.</translation>
     </message>
     <message>
-        <source>Starts new instance and opens the login screen.</source>
-        <translation>یک اجرای جدید را آغاز خواهد کرد و صفحه ورود را نشان خواهد داد.</translation>
-    </message>
-    <message>
         <source>Dark</source>
         <translation>تیره</translation>
     </message>
@@ -2342,10 +2333,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
     <message>
         <source>Dark violet</source>
         <translation>بنفش تیره</translation>
-    </message>
-    <message>
-        <source>Failed to load profile automatically.</source>
-        <translation>بارگذاری خودکار نمایه موفق نبود.</translation>
     </message>
     <message>
         <source>online</source>
@@ -2378,30 +2365,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>on/off</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets proxy settings. Default is NONE.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>%1 message(s) from %2 chats</source>
         <extracomment>e.g. 3 messages from 2 chats</extracomment>
         <translation type="unfinished"></translation>
@@ -2416,28 +2379,149 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <comment>contact status</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Failed to send file &quot;%1&quot;</source>
+        <translation type="unfinished">ارسال فایل «%1» موفق نبود</translation>
+    </message>
+    <message>
+        <source>%1 has joined the group</source>
+        <translation type="unfinished">%1 به گروه پیوست</translation>
+    </message>
+    <message>
+        <source>%1 has left the group</source>
+        <translation type="unfinished">%1 گروه را ترک کرد</translation>
+    </message>
+    <message>
+        <source>%1 is now known as %2</source>
+        <translation type="unfinished">%1 اکنون با عنوان %2 شناخته می‌شود</translation>
+    </message>
+    <message>
+        <source>%1 has set the title to %2</source>
+        <translation type="unfinished">%1 عنوان را به %2 تغییر داد</translation>
+    </message>
+    <message>
+        <source>Cleared</source>
+        <translation type="unfinished">پاک شد</translation>
+    </message>
+    <message>
+        <source>Call with %1 ended unexpectedly. %2</source>
+        <translation type="unfinished">تماس با %1 ناگهانی و غیر منتظره تموم شد. %2</translation>
+    </message>
+    <message>
+        <source>Call with %1 ended. %2</source>
+        <translation type="unfinished">پایان تماس با %1. %2</translation>
+    </message>
+    <message>
+        <source>%1 is now %2</source>
+        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
+        <translation type="unfinished">%1 الان %2</translation>
+    </message>
+    <message>
+        <source>Calling %1</source>
+        <translation type="unfinished">درحال تماس گرفتن با %1</translation>
+    </message>
+    <message>
+        <source>%1 calling</source>
+        <translation type="unfinished">%1 در حال تماس</translation>
+    </message>
+    <message>
+        <source>Message failed to send</source>
+        <translation type="unfinished">ارسال پیام موفق نبود</translation>
+    </message>
+    <message>
+        <source>Initializing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transmitting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Finished</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Broken</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation type="unfinished">در انتظار</translation>
+    </message>
+    <message>
+        <source>Remote paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation type="unfinished">وضعیت</translation>
+    </message>
+    <message>
+        <source>Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have joined the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have left the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load chat history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Database version (%1) is newer than we currently support (%2). Please upgrade qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
-    <name>RemoveFriendDialog</name>
+    <name>RemoveChatDialog</name>
     <message>
         <source>Remove friend</source>
-        <translation>حذف دوست</translation>
-    </message>
-    <message>
-        <source>Also remove chat history</source>
-        <translation>همچنین سابقه گفت‌و‌گو را حذف کن</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>حذف</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to remove %1 from your contacts list?</source>
-        <translation>آیا برای حذف %1 از لیست مخاطبین خود اطمینان دارید؟</translation>
+        <translation type="unfinished">حذف دوست</translation>
     </message>
     <message>
         <source>Remove all chat history with the friend if set</source>
-        <translation>در صورت وجود تمام سابقه گفت‌و‌گو با دوست را حذف کن</translation>
+        <translation type="unfinished">در صورت وجود تمام سابقه گفت‌و‌گو با دوست را حذف کن</translation>
+    </message>
+    <message>
+        <source>Also remove chat history</source>
+        <translation type="unfinished">همچنین سابقه گفت‌و‌گو را حذف کن</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to remove %1 from your contacts list?</source>
+        <translation type="unfinished">آیا برای حذف %1 از لیست مخاطبین خود اطمینان دارید؟</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished">حذف</translation>
     </message>
 </context>
 <context>
@@ -2521,6 +2605,14 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <source>Use regular expressions</source>
         <translation>از عبارت‌های با قاعده استفاده کن</translation>
     </message>
+    <message>
+        <source>Select Date Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a date</source>
+        <translation type="unfinished">تاریخی را انتخاب کنید</translation>
+    </message>
 </context>
 <context>
     <name>SetPasswordDialog</name>
@@ -2570,6 +2662,18 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
     <message>
         <source>Circle #%1</source>
         <translation>حلقه #%1</translation>
+    </message>
+    <message>
+        <source>Failed to load personal settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to upgrade settings from version %1 to version %2. Cannot start qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load global settings</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2826,26 +2930,12 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation>مخاطبین</translation>
     </message>
     <message>
-        <source>Executable file</source>
-        <comment>popup title</comment>
-        <translation>فایل اجرایی</translation>
-    </message>
-    <message>
-        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
-        <comment>popup text</comment>
-        <translation>شما از qTox خواسته اید که یک فایل اجرایی را باز کند. فایل های اجرایی میتوانند به شکل بالقوه صدمه جدی به سیستم شما بزنند. آیا اطمینان دارید که میخواهید این فایل را اجرا کنید؟</translation>
-    </message>
-    <message>
         <source>Status</source>
         <translation>وضعیت</translation>
     </message>
     <message>
         <source>Your name</source>
         <translation>نام شما</translation>
-    </message>
-    <message>
-        <source>Message failed to send</source>
-        <translation>ارسال پیام موفق نبود</translation>
     </message>
     <message>
         <source>Create new group...</source>
@@ -2921,10 +3011,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <source>My profile</source>
         <comment>title of the window</comment>
         <translation>پروفایل من</translation>
-    </message>
-    <message>
-        <source>Failed to send file &quot;%1&quot;</source>
-        <translation>ارسال فایل «%1» موفق نبود</translation>
     </message>
     <message>
         <source>Toxcore failed to start, the application will terminate after you close this message.</source>

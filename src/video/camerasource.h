@@ -30,14 +30,15 @@
 
 class CameraDevice;
 struct AVCodecContext;
+class Settings;
 
 class CameraSource : public VideoSource
 {
     Q_OBJECT
 
 public:
-    static CameraSource& getInstance();
-    static void destroyInstance();
+    explicit CameraSource(Settings& settings);
+    ~CameraSource();
     void setupDefault();
     bool isNone() const;
 
@@ -46,15 +47,13 @@ public:
     void unsubscribe() override;
 
 public slots:
-    void setupDevice(const QString& deviceName, const VideoMode& mode);
+    void setupDevice(const QString& deviceName_, const VideoMode& mode_);
 
 signals:
     void deviceOpened();
     void openFailed();
 
 private:
-    CameraSource();
-    ~CameraSource();
     void stream();
 
 private slots:
@@ -76,8 +75,7 @@ private:
     QReadWriteLock deviceMutex;
     QReadWriteLock streamMutex;
 
-    std::atomic_bool _isNone;
+    std::atomic_bool isNone_;
     std::atomic_int subscriptions;
-
-    static CameraSource* instance;
+    Settings& settings;
 };

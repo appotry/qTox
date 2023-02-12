@@ -38,16 +38,21 @@ struct ChatLogItemDeleter
 };
 } // namespace
 
-ChatLogItem::ChatLogItem(ToxPk sender_, const QString& displayName, ChatLogFile file_)
-    : ChatLogItem(std::move(sender_), displayName, ContentType::fileTransfer,
+ChatLogItem::ChatLogItem(ToxPk sender_, const QString& displayName_, ChatLogFile file_)
+    : ChatLogItem(std::move(sender_), displayName_, ContentType::fileTransfer,
                   ContentPtr(new ChatLogFile(std::move(file_)),
                              ChatLogItemDeleter<ChatLogFile>::doDelete))
 {}
 
-ChatLogItem::ChatLogItem(ToxPk sender_, const QString& displayName, ChatLogMessage message_)
-    : ChatLogItem(sender_, displayName, ContentType::message,
+ChatLogItem::ChatLogItem(ToxPk sender_, const QString& displayName_, ChatLogMessage message_)
+    : ChatLogItem(sender_, displayName_, ContentType::message,
                   ContentPtr(new ChatLogMessage(std::move(message_)),
                              ChatLogItemDeleter<ChatLogMessage>::doDelete))
+{}
+
+ChatLogItem::ChatLogItem(SystemMessage systemMessage)
+    : contentType(ContentType::systemMessage)
+    , content(new SystemMessage(std::move(systemMessage)), ChatLogItemDeleter<SystemMessage>::doDelete)
 {}
 
 ChatLogItem::ChatLogItem(ToxPk sender_, const QString& displayName_, ContentType contentType_, ContentPtr content_)
@@ -91,6 +96,19 @@ const ChatLogMessage& ChatLogItem::getContentAsMessage() const
     return *static_cast<ChatLogMessage*>(content.get());
 }
 
+SystemMessage& ChatLogItem::getContentAsSystemMessage()
+{
+    assert(contentType == ContentType::systemMessage);
+    return *static_cast<SystemMessage*>(content.get());
+}
+
+const SystemMessage& ChatLogItem::getContentAsSystemMessage() const
+{
+    assert(contentType == ContentType::systemMessage);
+    return *static_cast<SystemMessage*>(content.get());
+}
+
+
 QDateTime ChatLogItem::getTimestamp() const
 {
     switch (contentType) {
@@ -101,6 +119,10 @@ QDateTime ChatLogItem::getTimestamp() const
     case ChatLogItem::ContentType::fileTransfer: {
         const auto& file = getContentAsFile();
         return file.timestamp;
+    }
+    case ChatLogItem::ContentType::systemMessage: {
+        const auto& systemMessage = getContentAsSystemMessage();
+        return systemMessage.timestamp;
     }
     }
 

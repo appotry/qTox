@@ -83,6 +83,16 @@ class UpdateCheck;
 class Settings;
 class IChatLog;
 class ChatHistory;
+class SmileyPack;
+class CameraSource;
+class Style;
+class IMessageBoxManager;
+class ContentDialogManager;
+class FriendList;
+class GroupList;
+class IPC;
+class ToxSave;
+class Nexus;
 
 class Widget final : public QMainWindow
 {
@@ -117,7 +127,8 @@ private:
     };
 
 public:
-    explicit Widget(Profile& _profile, IAudioControl& audio, QWidget* parent = nullptr);
+    Widget(Profile& profile_, IAudioControl& audio_, CameraSource& cameraSource,
+        Settings& settings, Style& style, IPC& ipc, Nexus& nexus, QWidget* parent = nullptr);
     ~Widget() override;
     void init();
     void setCentralWidget(QWidget* widget, const QString& widgetName);
@@ -126,7 +137,7 @@ public:
     static Widget* getInstance(IAudioControl* audio = nullptr);
     void showUpdateDownloadProgress();
     void addFriendDialog(const Friend* frnd, ContentDialog* dialog);
-    void addGroupDialog(Group* group, ContentDialog* dialog);
+    void addGroupDialog(const Group* group, ContentDialog* dialog);
     bool newFriendMessageAlert(const ToxPk& friendId, const QString& text, bool sound = true,
                                QString filename = QString(), size_t filesize = 0);
     bool newGroupMessageAlert(const GroupId& groupId, const ToxPk& authorPk, const QString& message,
@@ -138,8 +149,6 @@ public:
     ContentDialog* createContentDialog() const;
     ContentLayout* createContentDialog(DialogType type) const;
 
-    static void confirmExecutableOpen(const QFileInfo& file);
-
     void clearAllReceipts();
 
     static inline QIcon prepareIcon(QString path, int w = 0, int h = 0);
@@ -147,6 +156,9 @@ public:
     bool groupsVisible() const;
 
     void resetIcon();
+    void registerIpcHandlers();
+    static bool toxActivateEventHandler(const QByteArray& data, void* userData);
+    bool handleToxSave(const QString& path);
 
 public slots:
     void reloadTheme();
@@ -190,8 +202,8 @@ public slots:
     void onGroupPeerAudioPlaying(int groupnumber, ToxPk peerPk);
     void onGroupSendFailed(uint32_t groupnumber);
     void onFriendTypingChanged(uint32_t friendnumber, bool isTyping);
-    void nextContact();
-    void previousContact();
+    void nextChat();
+    void previousChat();
     void onFriendDialogShown(const Friend* f);
     void onGroupDialogShown(Group* g);
     void toggleFullscreen();
@@ -224,7 +236,7 @@ private slots:
     void setStatusOnline();
     void setStatusAway();
     void setStatusBusy();
-    void onIconClick(QSystemTrayIcon::ActivationReason);
+    void onIconClick(QSystemTrayIcon::ActivationReason reason);
     void onUserAwayCheck();
     void onEventIconTick();
     void onTryCreateTrayIcon();
@@ -237,11 +249,11 @@ private slots:
     void onDialogShown(GenericChatroomWidget* widget);
     void outgoingNotification();
     void onCallEnd();
-    void incomingNotification(uint32_t friendId);
+    void incomingNotification(uint32_t friendNum);
     void onRejectCall(uint32_t friendId);
     void onStopNotification();
     void dispatchFile(ToxFile file);
-    void dispatchFileWithBool(ToxFile file, bool);
+    void dispatchFileWithBool(ToxFile file, bool pausedOrBroken);
     void dispatchFileSendFailed(uint32_t friendId, const QString& fileName);
     void connectCircleWidget(CircleWidget& circleWidget);
     void connectFriendWidget(FriendWidget& friendWidget);
@@ -266,8 +278,8 @@ private:
     void removeGroup(Group* g, bool fake = false);
     void saveWindowGeometry();
     void saveSplitterGeometry();
-    void cycleContacts(bool forward);
-    void searchContacts();
+    void cycleChats(bool forward);
+    void searchChats();
     void changeDisplayMode();
     void updateFilterText();
     FilterCriteria getFilterCriteria() const;
@@ -280,6 +292,7 @@ private:
     void playNotificationSound(IAudioSink::Sound sound, bool loop = false);
     void cleanupNotificationSound();
     void acceptFileTransfer(const ToxFile &file, const QString &path);
+    void formatWindowTitle(const QString& content);
 
 private:
     Profile& profile;
@@ -320,7 +333,7 @@ private:
     FilesForm* filesForm;
     static Widget* instance;
     GenericChatroomWidget* activeChatroomWidget;
-    FriendListWidget* contactListWidget;
+    FriendListWidget* chatListWidget;
     MaskablePixmapWidget* profilePicture;
     bool notify(QObject* receiver, QEvent* event);
     bool autoAwayActive = false;
@@ -381,6 +394,15 @@ private:
     QAction* nextConversationAction;
     QAction* previousConversationAction;
 #endif
+    std::unique_ptr<SmileyPack> smileyPack;
+    std::unique_ptr<DocumentCache> documentCache;
+    CameraSource& cameraSource;
+    Style& style;
+    IMessageBoxManager* messageBoxManager = nullptr; // freed by Qt on destruction
+    std::unique_ptr<FriendList> friendList;
+    std::unique_ptr<GroupList> groupList;
+    std::unique_ptr<ContentDialogManager> contentDialogManager;
+    IPC& ipc;
+    std::unique_ptr<ToxSave> toxSave;
+    Nexus& nexus;
 };
-
-bool toxActivateEventHandler(const QByteArray& data);

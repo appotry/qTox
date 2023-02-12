@@ -32,6 +32,7 @@ public:
 
 signals:
     void enterPressed();
+    void escapePressed();
     void tabPressed();
     void keyPressed();
     void pasteImage(const QPixmap& pixmap);

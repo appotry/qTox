@@ -19,26 +19,27 @@
 
 #pragma once
 
-#include "contact.h"
+#include "chat.h"
 #include "src/core/core.h"
 #include "src/core/extension.h"
-#include "src/core/toxid.h"
-#include "src/core/contactid.h"
+#include "src/core/toxpk.h"
+#include "src/core/chatid.h"
 #include "src/model/status.h"
 #include <QObject>
 #include <QString>
 
-class Friend : public Contact
+class Friend : public Chat
 {
     Q_OBJECT
 public:
-    Friend(uint32_t friendId, const ToxPk& friendPk, const QString& userAlias = {}, const QString &userName = {});
+    Friend(uint32_t friendId_, const ToxPk& friendPk_, const QString& userAlias_ = {}, const QString& userName_ = {});
     Friend(const Friend& other) = delete;
     Friend& operator=(const Friend& other) = delete;
 
     void setName(const QString& name) override;
-    void setAlias(const QString& name);
+    void setAlias(const QString& alias);
     QString getDisplayedName() const override;
+    QString getDisplayedName(const ToxPk& contact) const override;
     bool hasAlias() const;
     QString getUserName() const;
     void setStatusMessage(const QString& message);
@@ -49,12 +50,11 @@ public:
 
     const ToxPk& getPublicKey() const;
     uint32_t getId() const override;
-    const ContactId& getPersistentId() const override;
+    const ChatId& getPersistentId() const override;
 
     void finishNegotiation();
     void setStatus(Status::Status s);
     Status::Status getStatus() const;
-    bool useHistory() const final;
 
     void setExtendedMessageSupport(bool supported);
     ExtensionSet getSupportedExtensions() const;

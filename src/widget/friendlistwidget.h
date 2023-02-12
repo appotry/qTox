@@ -38,13 +38,21 @@ class GenericChatroomWidget;
 class CategoryWidget;
 class Friend;
 class IFriendListItem;
+class Settings;
+class Style;
+class IMessageBoxManager;
+class FriendList;
+class GroupList;
+class Profile;
 
 class FriendListWidget : public QWidget
 {
     Q_OBJECT
 public:
     using SortingMode = Settings::FriendListSortingMode;
-    explicit FriendListWidget(const Core& _core, Widget* parent, bool groupsOnTop = true);
+    FriendListWidget(const Core& core, Widget* parent, Settings& settings, Style& style,
+        IMessageBoxManager& messageBoxManager, FriendList& friendList, GroupList& groupList,
+        Profile& profile, bool groupsOnTop = true);
     ~FriendListWidget();
     void setMode(SortingMode mode);
     SortingMode getMode() const;
@@ -59,9 +67,9 @@ public:
     void searchChatrooms(const QString& searchString, bool hideOnline = false,
                          bool hideOffline = false, bool hideGroups = false);
 
-    void cycleContacts(GenericChatroomWidget* activeChatroomWidget, bool forward);
+    void cycleChats(GenericChatroomWidget* activeChatroomWidget, bool forward);
 
-    void updateActivityTime(const QDateTime& date);
+    void updateActivityTime(const QDateTime& time);
 
 signals:
     void onCompactChanged(bool compact);
@@ -85,7 +93,7 @@ private slots:
 private:
     CircleWidget* createCircleWidget(int id = -1);
     CategoryWidget* getTimeCategoryWidget(const Friend* frd) const;
-    void sortByMode(SortingMode mode);
+    void sortByMode();
     void cleanMainLayout();
     QWidget* getNextWidgetForName(IFriendListItem* currentPos, bool forward) const;
     QVector<std::shared_ptr<IFriendListItem> > getItemsFromCircle(CircleWidget* circle) const;
@@ -97,4 +105,10 @@ private:
     FriendListManager* manager;
 
     const Core& core;
+    Settings& settings;
+    Style& style;
+    IMessageBoxManager& messageBoxManager;
+    FriendList& friendList;
+    GroupList& groupList;
+    Profile& profile;
 };

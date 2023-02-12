@@ -40,8 +40,8 @@ struct MessageDateAdaptor
                         : invalidDateTime)
     {}
 
-    MessageDateAdaptor(const QDateTime& timestamp)
-        : timestamp(timestamp)
+    MessageDateAdaptor(const QDateTime& timestamp_)
+        : timestamp(timestamp_)
     {}
 
     const QDateTime& timestamp;
@@ -98,7 +98,7 @@ std::map<ChatLogIdx, ChatLogItem>::const_iterator
 firstItemAfterDate(QDate date, const std::map<ChatLogIdx, ChatLogItem>& items)
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-    return std::lower_bound(items.begin(), items.end(), QDateTime(date.startOfDay()),
+    return std::lower_bound(items.begin(), items.end(), date.startOfDay(),
 #else
     return std::lower_bound(items.begin(), items.end(), QDateTime(date),
 #endif
@@ -107,15 +107,15 @@ firstItemAfterDate(QDate date, const std::map<ChatLogIdx, ChatLogItem>& items)
                             });
 }
 
-QString resolveToxPk(const ToxPk& pk)
+QString resolveToxPk(FriendList& friendList, GroupList& groupList, const ToxPk& pk)
 {
-    Friend* f = FriendList::findFriend(pk);
+    Friend* f = friendList.findFriend(pk);
     if (f) {
         return f->getDisplayedName();
     }
 
-    for (Group* it : GroupList::getAllGroups()) {
-        QString res = it->resolveToxId(pk);
+    for (Group* it : groupList.getAllGroups()) {
+        QString res = it->resolveToxPk(pk);
         if (!res.isEmpty()) {
             return res;
         }
@@ -125,16 +125,22 @@ QString resolveToxPk(const ToxPk& pk)
 }
 } // namespace
 
-SessionChatLog::SessionChatLog(const ICoreIdHandler& coreIdHandler)
-    : coreIdHandler(coreIdHandler)
+SessionChatLog::SessionChatLog(const ICoreIdHandler& coreIdHandler_, FriendList& friendList_,
+    GroupList& groupList_)
+    : coreIdHandler(coreIdHandler_)
+    , friendList{friendList_}
+    , groupList{groupList_}
 {}
 
 /**
  * @brief Alternate constructor that allows for an initial index to be set
  */
-SessionChatLog::SessionChatLog(ChatLogIdx initialIdx, const ICoreIdHandler& coreIdHandler)
-    : coreIdHandler(coreIdHandler)
+SessionChatLog::SessionChatLog(ChatLogIdx initialIdx, const ICoreIdHandler& coreIdHandler_,
+    FriendList& friendList_, GroupList& groupList_)
+    : coreIdHandler(coreIdHandler_)
     , nextIdx(initialIdx)
+    , friendList{friendList_}
+    , groupList{groupList_}
 {}
 
 SessionChatLog::~SessionChatLog() = default;
@@ -144,7 +150,7 @@ QString SessionChatLog::resolveSenderNameFromSender(const ToxPk& sender)
     bool isSelf = sender == coreIdHandler.getSelfPublicKey();
     QString myNickName = coreIdHandler.getUsername().isEmpty() ? sender.toString() : coreIdHandler.getUsername();
 
-    return isSelf ? myNickName : resolveToxPk(sender);
+    return isSelf ? myNickName : resolveToxPk(friendList, groupList, sender);
 }
 
 const ChatLogItem& SessionChatLog::at(ChatLogIdx idx) const
@@ -319,6 +325,15 @@ std::vector<IChatLog::DateChatLogIdxPair> SessionChatLog::getDateIdxs(const QDat
     return ret;
 }
 
+void SessionChatLog::addSystemMessage(const SystemMessage& message)
+{
+    auto messageIdx = nextIdx++;
+
+    items.emplace(messageIdx, ChatLogItem(message));
+
+    emit itemUpdated(messageIdx);
+}
+
 void SessionChatLog::insertCompleteMessageAtIdx(ChatLogIdx idx, const ToxPk& sender, QString senderName,
                                                 const ChatLogMessage& message)
 {
@@ -358,6 +373,13 @@ void SessionChatLog::insertFileAtIdx(ChatLogIdx idx, const ToxPk& sender, QStrin
     items.emplace(idx, std::move(item));
 }
 
+void SessionChatLog::insertSystemMessageAtIdx(ChatLogIdx idx, SystemMessage message)
+{
+    auto item = ChatLogItem(std::move(message));
+
+    items.emplace(idx, std::move(item));
+}
+
 /**
  * @brief Inserts message data into the chatlog buffer
  * @note Owner of SessionChatLog is in charge of attaching this to the appropriate IMessageDispatcher
@@ -371,7 +393,7 @@ void SessionChatLog::onMessageReceived(const ToxPk& sender, const Message& messa
     chatLogMessage.message = message;
     items.emplace(messageIdx, ChatLogItem(sender, resolveSenderNameFromSender(sender), chatLogMessage));
 
-    emit this->itemUpdated(messageIdx);
+    emit itemUpdated(messageIdx);
 }
 
 /**
@@ -391,7 +413,7 @@ void SessionChatLog::onMessageSent(DispatchedMessageId id, const Message& messag
 
     outgoingMessages.insert(id, messageIdx);
 
-    emit this->itemUpdated(messageIdx);
+    emit itemUpdated(messageIdx);
 }
 
 /**
@@ -417,11 +439,12 @@ void SessionChatLog::onMessageComplete(DispatchedMessageId id)
 
     messageIt->second.getContentAsMessage().state = MessageState::complete;
 
-    emit this->itemUpdated(messageIt->first);
+    emit itemUpdated(messageIt->first);
 }
 
-void SessionChatLog::onMessageBroken(DispatchedMessageId id, BrokenMessageReason)
+void SessionChatLog::onMessageBroken(DispatchedMessageId id, BrokenMessageReason reason)
 {
+    std::ignore = reason;
     auto chatLogIdxIt = outgoingMessages.find(id);
 
     if (chatLogIdxIt == outgoingMessages.end()) {
@@ -440,7 +463,7 @@ void SessionChatLog::onMessageBroken(DispatchedMessageId id, BrokenMessageReason
     // NOTE: Reason for broken message not currently shown in UI, but it could be
     messageIt->second.getContentAsMessage().state = MessageState::broken;
 
-    emit this->itemUpdated(messageIt->first);
+    emit itemUpdated(messageIt->first);
 }
 
 /**
@@ -479,7 +502,7 @@ void SessionChatLog::onFileUpdated(const ToxPk& sender, const ToxFile& file)
         currentFileTransfers.erase(fileIt);
     }
 
-    emit this->itemUpdated(messageIdx);
+    emit itemUpdated(messageIdx);
 }
 
 void SessionChatLog::onFileTransferRemotePausedUnpaused(const ToxPk& sender, const ToxFile& file,

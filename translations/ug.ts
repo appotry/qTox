@@ -587,6 +587,57 @@ which may lead to problems with video calls.</source>
     </message>
 </context>
 <context>
+    <name>AppManager</name>
+    <message>
+        <source>Tox URI to parse</source>
+        <translation>Tox ئۇلانما ئارېسى</translation>
+    </message>
+    <message>
+        <source>Starts new instance and loads specified profile.</source>
+        <translation>يېڭىدىن ئارخىپ قۇرۇپ بەلگىلەنگەن ھۆججەتنى كىرگۈزۈش.</translation>
+    </message>
+    <message>
+        <source>profile</source>
+        <translation>ئارخىپ</translation>
+    </message>
+    <message>
+        <source>Starts new instance and opens the login screen.</source>
+        <translation>يېڭىدىن ئۆزنەك قۇرۇپ كىرىش كۆزنىكىنى ئېچىش.</translation>
+    </message>
+    <message>
+        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>on/off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sets proxy settings. Default is NONE.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Error</source>
+        <translation type="unfinished">خاتا</translation>
+    </message>
+    <message>
+        <source>Failed to load profile automatically.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ChatForm</name>
     <message>
         <source>Send a file</source>
@@ -605,14 +656,6 @@ which may lead to problems with video calls.</source>
         <translation>قاملاشمىغان پىكىر</translation>
     </message>
     <message>
-        <source>%1 calling</source>
-        <translation>%1 نى چاقىرىش</translation>
-    </message>
-    <message>
-        <source>Calling %1</source>
-        <translation>ھازىر %1 نى چاقىرىۋاتىدۇ</translation>
-    </message>
-    <message>
         <source>Failed to open temporary file</source>
         <comment>Temporary file for screenshot</comment>
         <translation>ۋاقىتلىق ھۆججەت ئېچىلمىدى</translation>
@@ -621,10 +664,6 @@ which may lead to problems with video calls.</source>
         <source>qTox wasn&apos;t able to save the screenshot</source>
         <translatorcomment>laut Duden ist Screenshot schon deutsch</translatorcomment>
         <translation>ئېكران رەسىمى ساقلانمىدى</translation>
-    </message>
-    <message>
-        <source>Call with %1 ended. %2</source>
-        <translation>%1 بىلەن پاراڭ ئۈچۈلدى. %2</translation>
     </message>
     <message>
         <source>Call duration: </source>
@@ -637,15 +676,6 @@ which may lead to problems with video calls.</source>
     <message>
         <source>You&apos;re trying to send a sequential file, which is not going to work!</source>
         <translation>بىردىن يوللاپ سىناپ بېقىڭ، بۇ مەشغۇلاتنى تاماملىيالمىدى!</translation>
-    </message>
-    <message>
-        <source>%1 is now %2</source>
-        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
-        <translation>%1 ھازىر %2</translation>
-    </message>
-    <message>
-        <source>Call with %1 ended unexpectedly. %2</source>
-        <translation>%1 بىلەن بولغان ئالاقە ئۈزۈلۈپ قالدى. %2</translation>
     </message>
     <message>
         <source>Filename contained illegal characters</source>
@@ -725,29 +755,29 @@ so you can save the file on Windows.</source>
     </message>
 </context>
 <context>
-    <name>ChatLog</name>
+    <name>ChatTextEdit</name>
     <message>
-        <source>Copy</source>
-        <translation>كۆچۈرۈش</translation>
+        <source>Type your message here...</source>
+        <translation>ئۇچۇر كىرگۈزۈڭ...</translation>
     </message>
-    <message>
-        <source>Select all</source>
-        <translation>ھەممىنى تاللاش</translation>
-    </message>
+</context>
+<context>
+    <name>ChatWidget</name>
     <message>
         <source>pending</source>
-        <translation>ساقلاش</translation>
+        <translation type="unfinished">ساقلاش</translation>
     </message>
     <message>
         <source>%1 is typing</source>
         <translation type="unfinished">%1 خەت كىرگۈزىۋاتىدۇ</translation>
     </message>
-</context>
-<context>
-    <name>ChatTextEdit</name>
     <message>
-        <source>Type your message here...</source>
-        <translation>ئۇچۇر كىرگۈزۈڭ...</translation>
+        <source>Copy</source>
+        <translation type="unfinished">كۆچۈرۈش</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation type="unfinished">ھەممىنى تاللاش</translation>
     </message>
 </context>
 <context>
@@ -1034,7 +1064,7 @@ so you can save the file on Windows.</source>
     <message>
         <source>Remove friend</source>
         <comment>Menu to remove the friend from the friend list</comment>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">دوست ئۆچۈرۈش</translation>
     </message>
     <message>
         <source>Blocked</source>
@@ -1170,6 +1200,10 @@ instead of closing entirely.</source>
         <comment>autoaccept cb tooltip</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Add a chat message when a user joins or leaves a group</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>GenericChatForm</name>
@@ -1196,10 +1230,6 @@ instead of closing entirely.</source>
     <message>
         <source>Clear displayed messages</source>
         <translation>ئۇچۇرلارنى تازىلاش</translation>
-    </message>
-    <message>
-        <source>Cleared</source>
-        <translation>تازىلاندى</translation>
     </message>
     <message>
         <source>Quote selected text</source>
@@ -1236,22 +1266,6 @@ instead of closing entirely.</source>
 </context>
 <context>
     <name>GroupChatForm</name>
-    <message>
-        <source>%1 has set the title to %2</source>
-        <translation>%1 ماۋزۇنى %2 گە ئۆزگەرتتى</translation>
-    </message>
-    <message>
-        <source>%1 has joined the group</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>%1 is now known as %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>%1 has left the group</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message numerus="yes">
         <source>%n user(s) in chat</source>
         <comment>Number of users in chat</comment>
@@ -1490,31 +1504,11 @@ Share it with your friends to begin chatting.</source>
 <context>
     <name>LoadHistoryDialog</name>
     <message>
-        <source>Load history</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>from</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>to</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(about 100 messages are loaded)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Select a date</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Load history dialog</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select date dialog</source>
+        <source>Load history from:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1764,6 +1758,19 @@ Please make sure to enter the same password twice.</source>
     <message>
         <source>Open Settings</source>
         <translation>تەكشەلەرنى ئېچىش</translation>
+    </message>
+</context>
+<context>
+    <name>MessageBoxManager</name>
+    <message>
+        <source>Executable file</source>
+        <comment>popup title</comment>
+        <translation type="unfinished">ئىجرا بولىدىغان ھۆججەت</translation>
+    </message>
+    <message>
+        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
+        <comment>popup text</comment>
+        <translation type="unfinished">سىز  qTox ئارقىلىق ئىجرا بولىدىغان ھۆججەت ئاچماقچى، بۇ ھۆججەت بەلكىم كومپيۇتېرىڭىزغا زىيان يەتكۈزىشى مۇمكىن، راستىنلا بۇ ھۆججەتنى ئاچامسىز؟</translation>
     </message>
 </context>
 <context>
@@ -2265,18 +2272,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
 <context>
     <name>QObject</name>
     <message>
-        <source>Tox URI to parse</source>
-        <translation>Tox ئۇلانما ئارېسى</translation>
-    </message>
-    <message>
-        <source>Starts new instance and loads specified profile.</source>
-        <translation>يېڭىدىن ئارخىپ قۇرۇپ بەلگىلەنگەن ھۆججەتنى كىرگۈزۈش.</translation>
-    </message>
-    <message>
-        <source>profile</source>
-        <translation>ئارخىپ</translation>
-    </message>
-    <message>
         <source>Default</source>
         <translation>ئىتىراپلىق</translation>
     </message>
@@ -2324,10 +2319,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation>سۆھبەت خاتىرىڭىز ئېچىلمىدى، ئۇلارنى چەكلىۋەتسىڭىز بولىدۇ.</translation>
     </message>
     <message>
-        <source>Starts new instance and opens the login screen.</source>
-        <translation>يېڭىدىن ئۆزنەك قۇرۇپ كىرىش كۆزنىكىنى ئېچىش.</translation>
-    </message>
-    <message>
         <source>Dark</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2345,10 +2336,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
     </message>
     <message>
         <source>Dark violet</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Failed to load profile automatically.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2382,30 +2369,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Sets IPv6 &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>on/off</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets UDP &lt;on&gt;/&lt;off&gt;. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets LAN discovery &lt;on&gt;/&lt;off&gt;. UDP off overrides. Default is ON.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sets proxy settings. Default is NONE.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>(SOCKS5/HTTP/NONE):(ADDRESS):(PORT)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>%1 message(s) from %2 chats</source>
         <extracomment>e.g. 3 messages from 2 chats</extracomment>
         <translation type="unfinished"></translation>
@@ -2420,28 +2383,149 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <comment>contact status</comment>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Failed to send file &quot;%1&quot;</source>
+        <translation type="unfinished">ھۆججەت %1 يوللاش مەغلۇب بولدى</translation>
+    </message>
+    <message>
+        <source>%1 has joined the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 has left the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 is now known as %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 has set the title to %2</source>
+        <translation type="unfinished">%1 ماۋزۇنى %2 گە ئۆزگەرتتى</translation>
+    </message>
+    <message>
+        <source>Cleared</source>
+        <translation type="unfinished">تازىلاندى</translation>
+    </message>
+    <message>
+        <source>Call with %1 ended unexpectedly. %2</source>
+        <translation type="unfinished">%1 بىلەن بولغان ئالاقە ئۈزۈلۈپ قالدى. %2</translation>
+    </message>
+    <message>
+        <source>Call with %1 ended. %2</source>
+        <translation type="unfinished">%1 بىلەن پاراڭ ئۈچۈلدى. %2</translation>
+    </message>
+    <message>
+        <source>%1 is now %2</source>
+        <comment>e.g. &quot;Dubslow is now online&quot;</comment>
+        <translation type="unfinished">%1 ھازىر %2</translation>
+    </message>
+    <message>
+        <source>Calling %1</source>
+        <translation type="unfinished">ھازىر %1 نى چاقىرىۋاتىدۇ</translation>
+    </message>
+    <message>
+        <source>%1 calling</source>
+        <translation type="unfinished">%1 نى چاقىرىش</translation>
+    </message>
+    <message>
+        <source>Message failed to send</source>
+        <translation type="unfinished">ئۇچۇر يوللانمىدى</translation>
+    </message>
+    <message>
+        <source>Initializing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transmitting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Finished</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Broken</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation type="unfinished">توختىدى</translation>
+    </message>
+    <message>
+        <source>Remote paused</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation type="unfinished">ھالەت</translation>
+    </message>
+    <message>
+        <source>Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have joined the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have left the group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load chat history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Database version (%1) is newer than we currently support (%2). Please upgrade qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
-    <name>RemoveFriendDialog</name>
+    <name>RemoveChatDialog</name>
     <message>
         <source>Remove friend</source>
-        <translation>دوست ئۆچۈرۈش</translation>
-    </message>
-    <message>
-        <source>Also remove chat history</source>
-        <translation>سۆھبەت خاتىرىسىنىمۇ بىرگە ئۆچۈرۈش</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>ئۆچۈرۈش</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to remove %1 from your contacts list?</source>
-        <translation>ئالاقىداشلار تىزىملىكىدىن %1 نى ئۆچۈرەمسىز؟</translation>
+        <translation type="unfinished">دوست ئۆچۈرۈش</translation>
     </message>
     <message>
         <source>Remove all chat history with the friend if set</source>
-        <translation>بۇنى تەڭشىسىڭىز بۇ دوستىڭىزنىڭ بارلىق سۆھبەت خاتىرىسىمۇ ئۆچۈپ كىتىدۇ</translation>
+        <translation type="unfinished">بۇنى تەڭشىسىڭىز بۇ دوستىڭىزنىڭ بارلىق سۆھبەت خاتىرىسىمۇ ئۆچۈپ كىتىدۇ</translation>
+    </message>
+    <message>
+        <source>Also remove chat history</source>
+        <translation type="unfinished">سۆھبەت خاتىرىسىنىمۇ بىرگە ئۆچۈرۈش</translation>
+    </message>
+    <message>
+        <source>Are you sure you want to remove %1 from your contacts list?</source>
+        <translation type="unfinished">ئالاقىداشلار تىزىملىكىدىن %1 نى ئۆچۈرەمسىز؟</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation type="unfinished">ئۆچۈرۈش</translation>
     </message>
 </context>
 <context>
@@ -2525,6 +2609,14 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <source>Use regular expressions</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Select Date Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a date</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SetPasswordDialog</name>
@@ -2574,6 +2666,18 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
     <message>
         <source>Circle #%1</source>
         <translation>چەمبىرەك #%1</translation>
+    </message>
+    <message>
+        <source>Failed to load personal settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to upgrade settings from version %1 to version %2. Cannot start qTox.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load global settings</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2830,26 +2934,12 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <translation>ئالاقىداشلار</translation>
     </message>
     <message>
-        <source>Executable file</source>
-        <comment>popup title</comment>
-        <translation>ئىجرا بولىدىغان ھۆججەت</translation>
-    </message>
-    <message>
-        <source>You have asked qTox to open an executable file. Executable files can potentially damage your computer. Are you sure want to open this file?</source>
-        <comment>popup text</comment>
-        <translation>سىز  qTox ئارقىلىق ئىجرا بولىدىغان ھۆججەت ئاچماقچى، بۇ ھۆججەت بەلكىم كومپيۇتېرىڭىزغا زىيان يەتكۈزىشى مۇمكىن، راستىنلا بۇ ھۆججەتنى ئاچامسىز؟</translation>
-    </message>
-    <message>
         <source>Status</source>
         <translation>ھالەت</translation>
     </message>
     <message>
         <source>Your name</source>
         <translation>ئاتىڭىز</translation>
-    </message>
-    <message>
-        <source>Message failed to send</source>
-        <translation>ئۇچۇر يوللانمىدى</translation>
     </message>
     <message>
         <source>Create new group...</source>
@@ -2925,10 +3015,6 @@ This ID includes the NoSpam code (in blue), and the checksum (in gray).</source>
         <source>My profile</source>
         <comment>title of the window</comment>
         <translation>مېنىڭ</translation>
-    </message>
-    <message>
-        <source>Failed to send file &quot;%1&quot;</source>
-        <translation type="unfinished">ھۆججەت %1 يوللاش مەغلۇب بولدى</translation>
     </message>
     <message>
         <source>Toxcore failed to start, the application will terminate after you close this message.</source>

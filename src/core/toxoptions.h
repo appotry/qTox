@@ -34,12 +34,12 @@ public:
     operator Tox_Options*();
     const char* getProxyAddrData() const;
     static std::unique_ptr<ToxOptions> makeToxOptions(const QByteArray& savedata,
-                                                      const ICoreSettings* s);
+                                                      const ICoreSettings& s);
     bool getIPv6Enabled() const;
     void setIPv6Enabled(bool enabled);
 
 private:
-    ToxOptions(Tox_Options* options, const QByteArray& proxyAddrData);
+    ToxOptions(Tox_Options* options_, const QByteArray& proxyAddrData_);
 
 private:
     Tox_Options* options = nullptr;

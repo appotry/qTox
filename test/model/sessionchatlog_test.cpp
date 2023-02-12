@@ -24,7 +24,7 @@
 #include <QtTest/QtTest>
 
 namespace {
-static const QString TEST_USERNAME = "qTox Tester #1";
+const QString TEST_USERNAME = "qTox Tester #1";
 
 Message createMessage(const QString& content)
 {
@@ -46,7 +46,7 @@ public:
 
     ToxPk getSelfPublicKey() const override
     {
-        static uint8_t id[TOX_PUBLIC_KEY_SIZE] = {5};
+        static uint8_t id[ToxPk::size] = {5};
         return ToxPk(id);
     }
 
@@ -72,6 +72,8 @@ private slots:
 private:
     MockCoreIdHandler idHandler;
     std::unique_ptr<SessionChatLog> chatLog;
+    std::unique_ptr<FriendList> friendList;
+    std::unique_ptr<GroupList> groupList;
 };
 
 /**
@@ -79,7 +81,10 @@ private:
  */
 void TestSessionChatLog::init()
 {
-    chatLog = std::unique_ptr<SessionChatLog>(new SessionChatLog(idHandler));
+    friendList = std::unique_ptr<FriendList>(new FriendList());
+    groupList = std::unique_ptr<GroupList>(new GroupList());
+    chatLog = std::unique_ptr<SessionChatLog>(new SessionChatLog(idHandler, *friendList,
+                                                                 *groupList));
 }
 
 /**

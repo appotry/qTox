@@ -27,6 +27,8 @@ class QPushButton;
 class QLabel;
 class LineEdit;
 class SearchSettingsForm;
+class Settings;
+class Style;
 
 class SearchForm final : public QWidget
 {
@@ -38,7 +40,7 @@ public:
         Active = 2,      // Red
     };
 
-    explicit SearchForm(QWidget* parent = nullptr);
+    SearchForm(Settings& settings, Style& style, QWidget* parent = nullptr);
     void removeSearchPhrase();
     QString getSearchPhrase() const;
     ParameterSearch getParameterSearch();
@@ -61,7 +63,7 @@ private:
     QPushButton* hideButton;
     QPushButton* startButton;
     LineEdit* searchLine;
-    SearchSettingsForm* settings;
+    SearchSettingsForm* searchSettingsForm;
     QLabel* messageLabel;
 
     QString searchPhrase;
@@ -71,6 +73,8 @@ private:
     bool isChangedPhrase{false};
     bool isSearchInBegin{true};
     bool isPrevSearch{false};
+    Settings& settings;
+    Style& style;
 
 private slots:
     void changedSearchPhrase(const QString& text);

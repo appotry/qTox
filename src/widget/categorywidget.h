@@ -28,12 +28,14 @@ class FriendListWidget;
 class FriendWidget;
 class QVBoxLayout;
 class QHBoxLayout;
+class Settings;
+class Style;
 
 class CategoryWidget : public GenericChatItemWidget
 {
     Q_OBJECT
 public:
-    explicit CategoryWidget(bool compact, QWidget* parent = nullptr);
+    CategoryWidget(bool compact_, Settings& settings, Style& style, QWidget* parent = nullptr);
 
     bool isExpanded() const;
     void setExpanded(bool isExpanded, bool save = true);
@@ -44,8 +46,8 @@ public:
     void updateStatus();
 
     bool hasChatrooms() const;
-    bool cycleContacts(bool forward);
-    bool cycleContacts(FriendWidget* activeChatroomWidget, bool forward);
+    bool cycleChats(bool forward);
+    bool cycleChats(FriendWidget* activeChatroomWidget, bool forward);
     void search(const QString& searchString, bool updateAll = false, bool hideOnline = false,
                 bool hideOffline = false);
 
@@ -70,8 +72,9 @@ private:
     virtual void onExpand()
     {
     }
-    virtual void onAddFriendWidget(FriendWidget*)
+    virtual void onAddFriendWidget(FriendWidget* widget)
     {
+        std::ignore = widget;
     }
 
     QWidget* listWidget;
@@ -83,4 +86,6 @@ private:
     QWidget* container;
     QFrame* lineFrame;
     bool expanded = false;
+    Settings& settings;
+    Style& style;
 };

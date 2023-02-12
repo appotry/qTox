@@ -52,7 +52,7 @@ namespace
             qWarning() << "Failed to get current username. Will use a global IPC.";
             user = "";
         }
-        return QString("qtox-" IPC_PROTOCOL_VERSION "-") + user;
+        return QString("qtox-" IPC_PROTOCOL_VERSION "-") + QString::fromUtf8(user);
     }
 } // namespace
 
@@ -69,8 +69,8 @@ namespace
  * @brief Inter-process communication
  */
 
-IPC::IPC(uint32_t profileId)
-    : profileId{profileId}
+IPC::IPC(uint32_t profileId_)
+    : profileId{profileId_}
     , globalMemory{getIpcKey()}
 {
     qRegisterMetaType<IPCEventHandler>("IPCEventHandler");
@@ -189,9 +189,16 @@ bool IPC::isCurrentOwner()
  * @brief Register a handler for an IPC event
  * @param handler The handler callback. Should not block for more than a second, at worst
  */
-void IPC::registerEventHandler(const QString& name, IPCEventHandler handler)
+void IPC::registerEventHandler(const QString& name, IPCEventHandler handler, void* userData)
 {
-    eventHandlers[name] = handler;
+    const std::lock_guard<std::mutex> lock(eventHandlersMutex);
+    eventHandlers[name] = {handler, userData};
+}
+
+void IPC::unregisterEventHandler(const QString& name)
+{
+    const std::lock_guard<std::mutex> lock(eventHandlersMutex);
+    eventHandlers.remove(name);
 }
 
 bool IPC::isEventAccepted(time_t time)
@@ -237,9 +244,9 @@ bool IPC::isAttached() const
     return globalMemory.isAttached();
 }
 
-void IPC::setProfileId(uint32_t profileId)
+void IPC::setProfileId(uint32_t profileId_)
 {
-    this->profileId = profileId;
+    profileId = profileId_;
 }
 
 /**
@@ -269,11 +276,11 @@ IPC::IPCEvent* IPC::fetchEvent()
     return nullptr;
 }
 
-bool IPC::runEventHandler(IPCEventHandler handler, const QByteArray& arg)
+bool IPC::runEventHandler(IPCEventHandler handler, const QByteArray& arg, void* userData)
 {
     bool result = false;
     if (QThread::currentThread() == qApp->thread()) {
-        result = handler(arg);
+        result = handler(arg, userData);
     } else {
         QMetaObject::invokeMethod(this, "runEventHandler", Qt::BlockingQueuedConnection,
                                   Q_RETURN_ARG(bool, result), Q_ARG(IPCEventHandler, handler),
@@ -309,11 +316,12 @@ void IPC::processEvents()
         // Non-main instance is limited to events destined for specific profile it runs
     }
 
+    const std::lock_guard<std::mutex> lock(eventHandlersMutex);
     while (IPCEvent* evt = fetchEvent()) {
         QString name = QString::fromUtf8(evt->name);
         auto it = eventHandlers.find(name);
         if (it != eventHandlers.end()) {
-            evt->accepted = runEventHandler(it.value(), evt->data);
+            evt->accepted = runEventHandler(it.value().handler, evt->data, it.value().userData);
             qDebug() << "Processed event:" << name << "posted:" << evt->posted
                      << "accepted:" << evt->accepted;
             if (evt->dest == 0) {

@@ -20,9 +20,11 @@
 
 #pragma once
 
+#include "audio/iaudiocontrol.h"
+
 #include <QObject>
 
-#include "audio/iaudiocontrol.h"
+#include <memory>
 
 class Widget;
 class Profile;
@@ -30,6 +32,10 @@ class Settings;
 class LoginScreen;
 class Core;
 class QCommandLineParser;
+class CameraSource;
+class Style;
+class IMessageBoxManager;
+class IPC;
 
 #ifdef Q_OS_MAC
 class QMenuBar;
@@ -44,16 +50,15 @@ class Nexus : public QObject
 {
     Q_OBJECT
 public:
+    Nexus(Settings& settings, IMessageBoxManager& messageBoxManager,
+        CameraSource& cameraSource, IPC& ipc, QObject* parent = nullptr);
+    ~Nexus();
     void start();
     void showMainGUI();
-    void setSettings(Settings* settings);
-    void setParser(QCommandLineParser* parser);
-    static Nexus& getInstance();
-    static void destroyInstance();
-    static Core* getCore();
-    static Profile* getProfile();
-    static Widget* getDesktopGUI();
-
+    void setParser(QCommandLineParser* parser_);
+    Profile* getProfile();
+    void registerIpcHandlers();
+    bool handleToxSave(const QString& path);
 
 #ifdef Q_OS_MAC
 public:
@@ -93,15 +98,17 @@ public slots:
     void bootstrapWithProfile(Profile* p);
 
 private:
-    explicit Nexus(QObject* parent = nullptr);
     void connectLoginScreen(const LoginScreen& loginScreen);
     void setProfile(Profile* p);
-    ~Nexus();
 
 private:
     Profile* profile;
-    Settings* settings;
+    Settings& settings;
     Widget* widget;
     std::unique_ptr<IAudioControl> audioControl;
     QCommandLineParser* parser = nullptr;
+    CameraSource& cameraSource;
+    std::unique_ptr<Style> style;
+    IMessageBoxManager& messageBoxManager;
+    IPC& ipc;
 };

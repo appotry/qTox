@@ -63,7 +63,6 @@ public:
     {
         return 0;
     }
-    qreal outputVolume() const;
     void setOutputVolume(qreal volume);
 
     qreal minInputGain() const;
@@ -123,12 +122,12 @@ protected:
 
 private:
     virtual bool initInput(const QString& deviceName);
-    virtual bool initOutput(const QString& outDevDescr);
+    virtual bool initOutput(const QString& deviceName);
 
     void cleanupBuffers(uint sourceId);
     void cleanupSound();
 
-    float getVolume();
+    qreal getVolume();
 
 protected:
     IAudioSettings& settings;
@@ -151,7 +150,7 @@ protected:
     std::unordered_set<AlSink*> soundSinks;
     std::unordered_set<AlSource*> sources;
 
-    int channels = 0;
+    int inputChannels = 0;
     qreal gain = 0;
     qreal gainFactor = 1;
     static constexpr qreal minInGain = -30;
